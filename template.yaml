@@ -1,19 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SAM template for deploying Splunk AWS Logs Forwarder
+Description: SAM template for deploying Splunk AWS Logs Collector
 
 Parameters:
   SplunkAPIKey:
     Type: String
   SplunkLogIngestUrl:
     Type: String
+  IntegrationId:
+    Type: String
 
 Resources:
-  SplunkAwsLogsForwarder:
+  SplunkAwsLogsCollector:
     Type: AWS::Serverless::Function
-    Description: WIP SplunkAwsLogsForwarder
+    Description: Splunk AWS Log Collector
     Properties:
-      FunctionName: splunk-aws-logs-forwarder
+      FunctionName: !Join [ '-', ['splunk-aws-logs-collector', !Ref IntegrationId] ]
       Runtime: python3.7
       Timeout: 60
       CodeUri: ./src
@@ -30,10 +32,12 @@ Resources:
               Action:
                 - tag:GetResources
               Resource: '*'
+      Tags:
+        SplunkId: !Join [ '-', [ 'aws-log-collector', !Ref IntegrationId, !Ref 'AWS::Region' ] ]
 
 Outputs:
   LambdaArn:
     Value:
       Fn::GetAtt:
-        - SplunkAwsLogsForwarder
+        - SplunkAwsLogsCollector
         - Arn
