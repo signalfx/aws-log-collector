@@ -30,11 +30,12 @@ for region in us-east-2 us-east-1 #eu-central-1 us-west-1 us-west-2 ap-south-1 a
 do
   BUCKET_NAME=${BUCKET_NAME_PREFIX}-$region
   echo "=========== Uploading to S3 bucket ${BUCKET_NAME} in region $region ============="
-  ./upload_packaged_to_bucket.sh --bucket-name ${BUCKET_NAME} --region ${region} --profile ${PROFILE}
-  echo "=========================================================================================================================="
+  ./upload_packaged_to_bucket.sh --bucket-name ${BUCKET_NAME} --profile ${PROFILE}
   if [[ $? -ne 0 ]]
   then
     echo "Error uploading S3 bucket! Stopping the execution."
     exit 1
   fi
+
+  echo "======================================================================================================"
 done

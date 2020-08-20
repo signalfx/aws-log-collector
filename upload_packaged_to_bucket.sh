@@ -5,20 +5,16 @@ while [[ "$1" != "" ]]; do
         -b | --bucket-name )    shift
                                 BUCKET_NAME=$1
                                 ;;
-        -r | --region )         shift
-                                REGION=$1
-                                ;;
         -p | --profile )        shift
                                 PROFILE=$1
                                 ;;
-        * )                     echo "Bucket name, region and profile are required."
+        * )                     echo "Bucket name and profile are required."
                                 exit 1
     esac
     shift
 done
 
 [[ -z "$BUCKET_NAME" ]] && { echo "Error: BUCKET_NAME not defined."; exit 1; }
-[[ -z "$REGION" ]] && { echo "Error: REGION not defined."; exit 1; }
 [[ -z "$PROFILE" ]] && { echo "Error: PROFILE not defined."; exit 1; }
 
 echo "Checking if the bucket $BUCKET_NAME exists..."
@@ -36,7 +32,7 @@ then
 
   echo "Packaging template, uploading code to s3..."
   #sam package creates packaged.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
-  sam package --profile ${PROFILE} --template-file template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET_NAME} --force-upload > output.txt 2>err.txt
+  RAW=`sam package --profile ${PROFILE} --template-file template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
 
   if [[ $? -ne 0 ]]
     then
@@ -45,8 +41,7 @@ then
   fi
 
   #extract the name of the uploaded file
-  EXTRACTED=`cat err.txt | sed -En 's/(.*)Uploading to ([a-zA-Z0-9]*)(.*)/\2/p'`
-
+  EXTRACTED=`echo ${RAW} | sed -En 's/(.*)Uploading to ([a-zA-Z0-9]*)(.*)/\2/p'`
   echo "File $EXTRACTED with lambda code uploaded."
 
   echo "Granting public access to $EXTRACTED ..."
@@ -58,12 +53,15 @@ then
   fi
 
   echo "Uploading packaged.yaml to bucket $BUCKET_NAME..."
-  aws s3api put-object --profile ${PROFILE} --acl public-read --region ${REGION} --bucket ${BUCKET_NAME} --key packaged.yaml --body packaged.yaml
+  aws s3api put-object --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key packaged.yaml --body packaged.yaml
 
   if [[ $? -ne 0 ]]
     then
       echo "Error encountered when uploading packaged.yam to a S3 bucket! Stopping the execution."
       exit 1
   fi
+else
+  echo "Bucket does not exist."
+  exit 1
 fi
 
