@@ -6,11 +6,11 @@ Code and deployment scripts for AWS lambda forwarding CloudWatch logs to o11y lo
  Before it can be used as a CloudFormation template, it needs to be transformed to valid CloudFormation file.
  
 2. In order to transform the file:
-    2.1 Make sure you have access to the S3 bucket with appropriate serverless policy. If bucket does not exist, you can create it
+    1. Make sure you have access to the S3 bucket with appropriate serverless policy. If bucket does not exist, you can create it
     with `ensure_bucket_exists.sh --bucket-name-prefix <yourbucket>`. Make sure to set AWS credentials as environment variables.
-    2.2. Run validation:
+    2. Run validation:
     `sam validate --profile <aws_profile> --template-file template.yaml`
-    2.3. Run packaging:
+    3. Run packaging:
     `sam package --profile <aws_profile> --template-file template.yaml --output-template-file packaged.yaml --s3-bucket <bucket>`.
     This will upload the code of the function to the bucket and create a packaged.yaml file locally.
     
