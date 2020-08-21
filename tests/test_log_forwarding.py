@@ -20,7 +20,7 @@ FORWARDER_FUNCTION_VERSION = '1.0.1'
 
 
 @patch.object(RetryableClient, "send")
-@patch('lambda_function.SfxHTTPClient')
+@patch('function.SfxHTTPClient')
 @patch.object(TagsCache, "get")
 class LogForwardingSuite(TestCase):
 

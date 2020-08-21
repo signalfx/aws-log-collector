@@ -3,10 +3,10 @@ import gzip
 import json
 import logging
 import os
+import time
 from io import BytesIO, BufferedReader
 
 import boto3
-import time
 from botocore.vendored import requests
 
 MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
@@ -235,11 +235,6 @@ class LogCollector:
             def lambda_enricher():
                 fwd_arn_parts = context.invoked_function_arn.split('function')
                 arn_prefix = fwd_arn_parts[0]
-                # fix account id
-                arn_prefix_parts = arn_prefix.split(":")
-                arn_prefix = ":".join(arn_prefix_parts[0:-2] + [enrichment['aws_account_id']]) + ":"
-
-                # Rebuild the arn with the lowercased function name
                 function_name = log_group.split('/')[-1].lower()
                 arn = arn_prefix + "function:" + function_name
                 enrichment['host'] = arn
@@ -284,7 +279,8 @@ class LogCollector:
             enriched_logs['enrichment'].update(self._tag_cache.get(arn))
         return enriched_logs
 
-    def _send_logs(self, logs):
+    @staticmethod
+    def _send_logs(logs):
         batcher = Batcher(MAX_REQUEST_SIZE_IN_BYTES)
         http_client = SfxHTTPClient(SFX_URL, SFX_API_KEY)
 
@@ -298,7 +294,8 @@ class LogCollector:
                     if log.isEnabledFor(logging.DEBUG):
                         log.debug(f"Forwarded log batch: {json.dumps(batch)}")
 
-    def _convert_to_hec(self, enriched_logs):
+    @staticmethod
+    def _convert_to_hec(enriched_logs):
         logs = []
 
         for item in enriched_logs["logEvents"]:
