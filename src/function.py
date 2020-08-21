@@ -9,8 +9,8 @@ import boto3
 import time
 from botocore.vendored import requests
 
-SFX_COMPRESSION_LEVEL = int(os.getenv("SFX_COMPRESSION_LEVEL", 6))
-SFX_MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("SFX_MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
+MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
+COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", 15 * 60))
 SFX_URL = os.getenv("SFX_URL", default="http://lab-ingest.corp.signalfx.com/v1/log")
 SFX_API_KEY = os.getenv("SFX_API_KEY", "<wrong-token>")
@@ -138,7 +138,7 @@ class SfxHTTPClient(object):
 
     @staticmethod
     def _compress_logs(batch):
-        return gzip.compress(bytes(batch, "utf-8"), SFX_COMPRESSION_LEVEL)
+        return gzip.compress(bytes(batch, "utf-8"), COMPRESSION_LEVEL)
 
     def __enter__(self):
         self._connect()
@@ -285,7 +285,7 @@ class LogCollector:
         return enriched_logs
 
     def _send_logs(self, logs):
-        batcher = Batcher(SFX_MAX_REQUEST_SIZE_IN_BYTES)
+        batcher = Batcher(MAX_REQUEST_SIZE_IN_BYTES)
         http_client = SfxHTTPClient(SFX_URL, SFX_API_KEY)
 
         with RetryableClient(http_client) as client:
