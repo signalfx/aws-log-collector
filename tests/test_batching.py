@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from lambda_function import Batcher
+from function import Batcher
 
 
 class BatchingSuite(TestCase):

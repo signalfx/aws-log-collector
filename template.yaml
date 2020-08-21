@@ -22,7 +22,7 @@ Resources:
       FunctionName: splunk-cloudwatch-logs-forwarder
       Runtime: python3.7
       Timeout: 60
-      CodeUri: .
+      CodeUri: ./src
       Handler: function.lambda_handler
       Environment:
         Variables:

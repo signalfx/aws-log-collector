@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, call
 
-from lambda_function import RetryableClient, RetryableException
+from function import RetryableClient, RetryableException
 
 
 class RetryClientSuite(TestCase):

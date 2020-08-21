@@ -8,8 +8,8 @@ import json
 
 from aws_lambda_context import LambdaContext
 
-from lambda_function import LogCollector
-from lambda_function import RetryableClient, TagsCache
+from function import LogCollector
+from function import RetryableClient, TagsCache
 
 LAMBDA_CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
 AWS_REGION = "us-east-1"
