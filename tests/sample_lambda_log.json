@@ -1,0 +1,16 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "134183635603",
+  "logGroup": "/aws/lambda/test_kh_log_producer",
+  "logStream": "2020/07/21/[1]1d2c383013c845c589ead2fc607da422",
+  "subscriptionFilters": [
+    "forwarding logs"
+  ],
+  "logEvents": [
+    {
+      "id": "35577170003975454190075900657599361257855695337297739779",
+      "timestamp": 1595335478131,
+      "message": "REPORT RequestId: 408713b5-d893-464b-9207-a1f8d9b60e6d\tDuration: 1.40 ms\tBilled Duration: 100 ms\tMemory Size: 128 MB\tMax Memory Used: 52 MB\t\n"
+    }
+  ]
+}

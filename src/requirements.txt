@@ -1,0 +1,2 @@
+aws-lambda-context==1.1.0
+boto3==1.14.47
