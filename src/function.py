@@ -113,14 +113,15 @@ class SfxHTTPClient(object):
 
     def _close(self):
         self._session.close()
+        self._session = None
 
     def send(self, log_events):
         data = self._combine_events(log_events)
         data = self._compress_logs(data)
 
         try:
-            print("Data to be sent=", data)
-            print("Sending request url=", self._url)
+            log.debug("Data to be sent=", data)
+            log.debug("Sending request url=", self._url)
             resp = self._session.post(self._url, data, timeout=self._timeout)
         except Exception:
             # network error
@@ -192,12 +193,10 @@ class TagsCache(object):
         for aws_resource in aws_resource_list:
             arn = aws_resource["ResourceARN"].lower()
             aws_tags = aws_resource["Tags"]
-            # todo(karol) can use map here
-            tags = {}
+            tags = tags_by_arn.get(arn, {})
             for raw_tag in aws_tags:
                 tags[raw_tag["Key"]] = raw_tag.get("Value", "null")
-
-            tags_by_arn[arn] = {**tags_by_arn.get(arn, {}), **tags}
+            tags_by_arn[arn] = tags
 
         return tags_by_arn
 
