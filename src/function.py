@@ -79,7 +79,7 @@ class Batcher(object):
             item_size_bytes = self._size_of_bytes(item)
             if item_size_bytes > self._max_batch_size_bytes:
                 log.info(f"Item is bigger than max batch size ({self._max_batch_size_bytes}), going to truncate it")
-                item = item[0:self._max_batch_size_bytes]
+                item = item.encode("utf-8")[:self._max_batch_size_bytes].decode("utf-8", "ignore")
                 item_size_bytes = self._size_of_bytes(item)
 
             if item_size_bytes + batch_size_bytes > self._max_batch_size_bytes:
