@@ -195,7 +195,7 @@ class TagsCache(object):
             aws_tags = aws_resource["Tags"]
             tags = tags_by_arn.get(arn, {})
             for raw_tag in aws_tags:
-                tags[raw_tag["Key"]] = raw_tag.get("Value", "null")
+                tags["test_" + raw_tag["Key"]] = raw_tag.get("Value", "null")
             tags_by_arn[arn] = tags
 
         return tags_by_arn
