@@ -277,7 +277,9 @@ class LogCollector:
     def _tags_enrichment(self, enriched_logs):
         arn = enriched_logs['enrichment'].get('arn')
         if arn:
-            enriched_logs['enrichment'].update(self._tag_cache.get(arn))
+            tags = self._tag_cache.get(arn)
+            if tags:
+                enriched_logs['enrichment'].update(tags)
         return enriched_logs
 
     @staticmethod

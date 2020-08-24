@@ -62,6 +62,43 @@ class LogForwardingSuite(TestCase):
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
 
+    def test_lambda_no_tags(self, tags_cache_get_mock, _, send_method_mock):
+        # GIVEN
+        log_forwarder = LogCollector()
+        tags_cache_get_mock.return_value = None
+        cw_event = self._read_from_file('sample_lambda_log.json')
+        context = self._lambda_context()
+        event = {'awslogs': {'data': self._encode(json.dumps(cw_event))}}
+
+        # WHEN
+        log_forwarder.forward_log(event, context)
+
+        # THEN
+        log_message = cw_event['logEvents'][0]['message']
+        log_group = cw_event['logGroup']
+        log_stream = cw_event['logStream']
+        function_name = log_group.split('/')[-1]
+        arn = FORWARDER_FUNCTION_ARN_PREFIX + function_name
+
+        expected_event = {
+            "event": log_message,
+            "time": "1595335478.131",
+            "sourcetype": "aws",
+            "fields": {
+                "logGroup": log_group,
+                "logStream": log_stream,
+                "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
+                "region": AWS_REGION,
+                "aws_account_id": AWS_ACCOUNT_ID,
+                "arn": arn,
+                "functionName": function_name
+            },
+            "host": arn,
+            "source": "lambda",
+        }
+
+        send_method_mock.assert_called_with([json.dumps(expected_event)])
+
     def test_rds(self, tags_cache_get_mock, _, send_method_mock):
         # GIVEN
         log_forwarder = LogCollector()
