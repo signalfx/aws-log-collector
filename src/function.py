@@ -217,14 +217,16 @@ class LogCollector:
         hec_logs = self._convert_to_hec(enriched_logs)
         self._send_logs(hec_logs)
 
-    def _read_logs(self, log_event):
+    @staticmethod
+    def _read_logs(log_event):
         with gzip.GzipFile(
                 fileobj=BytesIO(base64.b64decode(log_event["awslogs"]["data"]))
         ) as decompress_stream:
             data = b"".join(BufferedReader(decompress_stream))
         return json.loads(data)
 
-    def _basic_enrichment(self, logs, context):
+    @staticmethod
+    def _basic_enrichment(logs, context):
         def _get_source(log_group):
             for aws_source in LOG_GROUP_SOURCE_NAMES:
                 if aws_source in log_group:
