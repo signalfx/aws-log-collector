@@ -120,8 +120,8 @@ class SfxHTTPClient(object):
         data = self._compress_logs(data)
 
         try:
-            log.debug("Data to be sent=", data)
-            log.debug("Sending request url=", self._url)
+            log.debug(f"Data to be sent={data}")
+            log.info(f"Sending request to url={self._url}")
             resp = self._session.post(self._url, data, timeout=self._timeout)
         except Exception:
             # network error
