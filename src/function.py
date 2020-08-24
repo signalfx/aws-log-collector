@@ -258,7 +258,7 @@ class LogCollector:
             split_arn = arn.split(":")
             if len(split_arn) > 7:
                 split_arn = split_arn[:7]
-            _, _, _, region, account_id, _, _ = split_arn
+            _, _, _, region, _, _, _ = split_arn
             return region
 
         enrichment = {}
@@ -304,7 +304,8 @@ class LogCollector:
             del item['message']
             del item['id']
             # TODO add time instead of timestamp
-            # log["time"] = timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:]
+            timestamp_as_string = str(item['timestamp'])
+            item["time"] = timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:]
             del item['timestamp']
 
             item['sourcetype'] = 'aws'

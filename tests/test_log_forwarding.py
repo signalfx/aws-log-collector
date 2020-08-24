@@ -44,6 +44,7 @@ class LogForwardingSuite(TestCase):
 
         expected_event = {
             "event": log_message,
+            "time": "1595335478.131",
             "sourcetype": "aws",
             "fields": {
                 "logGroup": log_group,
@@ -80,6 +81,7 @@ class LogForwardingSuite(TestCase):
 
         expected_event = {
             "event": log_message,
+            "time": "1597746012.000",
             "sourcetype": "aws",
             "fields": {
                 "logGroup": log_group,
@@ -114,6 +116,7 @@ class LogForwardingSuite(TestCase):
 
         expected_event = {
             "event": log_message,
+            "time": "1597746392.945",
             "sourcetype": "aws",
             "fields": {
                 "logGroup": log_group,
