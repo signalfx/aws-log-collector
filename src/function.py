@@ -7,7 +7,7 @@ import time
 from io import BytesIO, BufferedReader
 
 import boto3
-from botocore.vendored import requests
+import requests
 
 MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
 COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
@@ -299,14 +299,13 @@ class LogCollector:
 
     @staticmethod
     def _convert_to_hec(enriched_logs):
-
         for item in enriched_logs["logEvents"]:
             hec_item = {}
             hec_item['event'] = item['message']
             timestamp_as_string = str(item['timestamp'])
             hec_item["time"] = timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:]
             hec_item['sourcetype'] = 'aws'
-            hec_item['fields'] = enriched_logs['enrichment']
+            hec_item['fields'] = dict(enriched_logs['enrichment'])
             hec_item['host'] = hec_item['fields']['host']
             hec_item['source'] = hec_item['fields']['source']
             del hec_item['fields']['host']
