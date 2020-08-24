@@ -297,27 +297,20 @@ class LogCollector:
 
     @staticmethod
     def _convert_to_hec(enriched_logs):
-        logs = []
 
         for item in enriched_logs["logEvents"]:
-            item['event'] = item['message']
-            del item['message']
-            del item['id']
-            # TODO add time instead of timestamp
+            hec_item = {}
+            hec_item['event'] = item['message']
             timestamp_as_string = str(item['timestamp'])
-            item["time"] = timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:]
-            del item['timestamp']
+            hec_item["time"] = timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:]
+            hec_item['sourcetype'] = 'aws'
+            hec_item['fields'] = enriched_logs['enrichment']
+            hec_item['host'] = hec_item['fields']['host']
+            hec_item['source'] = hec_item['fields']['source']
+            del hec_item['fields']['host']
+            del hec_item['fields']['source']
 
-            item['sourcetype'] = 'aws'
-            item['fields'] = enriched_logs['enrichment']
-            item['host'] = item['fields']['host']
-            del item['fields']['host']
-            item['source'] = item['fields']['source']
-            del item['fields']['source']
-
-            logs.append(json.dumps(item))
-
-        return logs
+            yield json.dumps(hec_item)
 
     @staticmethod
     def _dump_object(context):
