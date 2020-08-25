@@ -1,0 +1,16 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "134183635603",
+  "logGroup": "/aws/rds/instance/druid-lab0/postgresql",
+  "logStream": "druid-lab0.0",
+  "subscriptionFilters": [
+    "LambdaStream_test_kh_cw_log_fwd"
+  ],
+  "logEvents": [
+    {
+      "id": "35630926705580451386195161836517199196685400750495105024",
+      "timestamp": 1597746012000,
+      "message": "2020-08-18 10:20:12 UTC::@:[3505]:LOG:  checkpoint starting: time"
+    }
+  ]
+}
