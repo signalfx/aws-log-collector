@@ -254,7 +254,7 @@ class LogCollector:
             }
             return enrichers.get(source, default_enricher)
 
-        def _parse_log_forwarder_arn(arn):
+        def _get_region(arn):
             split_arn = arn.split(":")
             if len(split_arn) > 7:
                 split_arn = split_arn[:7]
@@ -267,7 +267,7 @@ class LogCollector:
         enrichment['logStream'] = logs['logStream']
         enrichment['source'] = _get_source(log_group.lower())
         enrichment['logForwarder'] = context.function_name.lower() + ":" + context.function_version
-        enrichment['region'] = _parse_log_forwarder_arn(context.invoked_function_arn)
+        enrichment['region'] = _get_region(context.invoked_function_arn)
         enrichment['aws_account_id'] = logs['owner']
         _enricher_factory(enrichment['source'])()
 
@@ -279,7 +279,11 @@ class LogCollector:
         if arn:
             tags = self._tag_cache.get(arn)
             if tags:
-                enriched_logs['enrichment'].update(tags)
+                for tag_name in tags.keys():
+                    if tag_name not in enriched_logs['enrichment']:
+                        enriched_logs[tag_name] = tags[tag_name]
+                    else:
+                        log.debug(f"Skipping tag with reserved name {tag_name}")
         return enriched_logs
 
     @staticmethod
