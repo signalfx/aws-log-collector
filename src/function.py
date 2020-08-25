@@ -168,7 +168,7 @@ class TagsCache(object):
         if self._is_expired():
             self._refresh()
 
-        return self.tags_by_arn.get(resource_arn, None)
+        return self.tags_by_arn.get(resource_arn.lower(), None)
 
     def build_cache(self):
         tags_by_arn_cache = {}
