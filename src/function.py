@@ -195,7 +195,7 @@ class TagsCache(object):
             aws_tags = aws_resource["Tags"]
             tags = tags_by_arn.get(arn, {})
             for raw_tag in aws_tags:
-                tags["test_" + raw_tag["Key"]] = raw_tag.get("Value", "null")
+                tags[raw_tag["Key"]] = raw_tag.get("Value", "null")
             tags_by_arn[arn] = tags
 
         return tags_by_arn
@@ -225,34 +225,33 @@ class LogCollector:
         return json.loads(data)
 
     @staticmethod
-    def _basic_enrichment(logs, context):
+    def _enricher_factory(source):
+        def lambda_enricher(context, log_group):
+            fwd_arn_parts = context.invoked_function_arn.split('function')
+            arn_prefix = fwd_arn_parts[0]
+            function_name = log_group.split('/')[-1].lower()
+            arn = arn_prefix + "function:" + function_name
+            return {'host': arn, 'arn': arn, 'functionName': function_name}
+
+        def rds_enricher(_, log_group):
+            log_parts = log_group.split('/')[-2:]
+            return {'host': log_parts[0], 'dbType': log_parts[1]}
+
+        def default_enricher(_, log_group):
+            return {'host': log_group}
+
+        enrichers = {
+            'lambda': lambda_enricher,
+            'rds': rds_enricher
+        }
+        return enrichers.get(source, default_enricher)
+
+    def _basic_enrichment(self, logs, context):
         def _get_source(log_group):
             for aws_source in LOG_GROUP_SOURCE_NAMES:
                 if aws_source in log_group:
                     return aws_source
             return "cloudwatch"
-
-        def _enricher_factory(source):
-            def lambda_enricher():
-                fwd_arn_parts = context.invoked_function_arn.split('function')
-                arn_prefix = fwd_arn_parts[0]
-                function_name = log_group.split('/')[-1].lower()
-                arn = arn_prefix + "function:" + function_name
-                enrichment['host'] = arn
-                enrichment['arn'] = arn
-                enrichment['functionName'] = function_name
-
-            def rds_enricher():
-                enrichment['host'], enrichment['dbType'] = log_group.split('/')[-2:]
-
-            def default_enricher():
-                enrichment['host'] = enrichment['logGroup']
-
-            enrichers = {
-                'lambda': lambda_enricher,
-                'rds': rds_enricher
-            }
-            return enrichers.get(source, default_enricher)
 
         def _get_region(arn):
             split_arn = arn.split(":")
@@ -261,16 +260,15 @@ class LogCollector:
             _, _, _, region, _, _, _ = split_arn
             return region
 
-        enrichment = {}
         log_group = logs['logGroup']
-        enrichment['logGroup'] = log_group
-        enrichment['logStream'] = logs['logStream']
-        enrichment['source'] = _get_source(log_group.lower())
-        enrichment['logForwarder'] = context.function_name.lower() + ":" + context.function_version
-        enrichment['region'] = _get_region(context.invoked_function_arn)
-        enrichment['aws_account_id'] = logs['owner']
-        _enricher_factory(enrichment['source'])()
-
+        enrichment = {'logGroup': log_group,
+                      'logStream': logs['logStream'],
+                      'source': _get_source(log_group.lower()),
+                      'logForwarder': context.function_name.lower() + ":" + context.function_version,
+                      'region': _get_region(context.invoked_function_arn),
+                      'aws_account_id': logs['owner']}
+        namespace_metadata = self._enricher_factory(enrichment['source'])(context, log_group)
+        enrichment.update(namespace_metadata)
         logs['enrichment'] = enrichment
         return logs
 
@@ -279,9 +277,10 @@ class LogCollector:
         if arn:
             tags = self._tag_cache.get(arn)
             if tags:
+                enrichment = enriched_logs['enrichment']
                 for tag_name in tags.keys():
                     if tag_name not in enriched_logs['enrichment']:
-                        enriched_logs[tag_name] = tags[tag_name]
+                        enrichment[tag_name] = tags[tag_name]
                     else:
                         log.debug(f"Skipping tag with reserved name {tag_name}")
         return enriched_logs
