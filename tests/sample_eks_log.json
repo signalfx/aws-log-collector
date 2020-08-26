@@ -1,7 +1,7 @@
 {
   "messageType": "DATA_MESSAGE",
   "owner": "134183635603",
-  "logGroup": "/aws/eks/rc0/cluster",
+  "logGroup": "/aws/eks/karol-test-eks-cluster/cluster",
   "logStream": "kube-apiserver-audit-4761e2cf27dd1fd6bc84182c95410afc",
   "subscriptionFilters": [
     "LambdaStream_test_kh_cw_log_fwd"

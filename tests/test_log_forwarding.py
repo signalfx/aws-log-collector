@@ -11,7 +11,7 @@ from aws_lambda_context import LambdaContext
 from function import LogCollector
 from function import RetryableClient, TagsCache
 
-LAMBDA_CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
+CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
 AWS_REGION = "us-east-1"
 AWS_ACCOUNT_ID = "134183635603"
 FORWARDER_FUNCTION_ARN_PREFIX = f"arn:aws:lambda:{AWS_REGION}:{AWS_ACCOUNT_ID}:function:"
@@ -24,21 +24,21 @@ FORWARDER_FUNCTION_VERSION = '1.0.1'
 @patch.object(TagsCache, "get")
 class LogForwardingSuite(TestCase):
 
+    def setUp(self) -> None:
+        self.log_forwarder = LogCollector()
+
     def test_lambda(self, tags_cache_get_mock, _, send_method_mock):
         # GIVEN
-        log_forwarder = LogCollector()
-        tags_cache_get_mock.return_value = LAMBDA_CUSTOM_TAGS
-        cw_event = self._read_from_file('sample_lambda_log.json')
-        context = self._lambda_context()
-        event = {'awslogs': {'data': self._encode(json.dumps(cw_event))}}
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_lambda_log.json')
 
         # WHEN
-        log_forwarder.forward_log(event, context)
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
 
         # THEN
-        log_message = cw_event['logEvents'][0]['message']
-        log_group = cw_event['logGroup']
-        log_stream = cw_event['logStream']
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
         function_name = log_group.split('/')[-1]
         arn = FORWARDER_FUNCTION_ARN_PREFIX + function_name
 
@@ -54,7 +54,7 @@ class LogForwardingSuite(TestCase):
                 "aws_account_id": AWS_ACCOUNT_ID,
                 "arn": arn,
                 "functionName": function_name,
-                **LAMBDA_CUSTOM_TAGS,
+                **CUSTOM_TAGS,
             },
             "host": arn,
             "source": "lambda",
@@ -62,21 +62,23 @@ class LogForwardingSuite(TestCase):
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
 
+    def _read_aws_log_event_from_file(self, file_name):
+        log_event = self._read_from_file(file_name)
+        aws_event = {'awslogs': {'data': self._encode(json.dumps(log_event))}}
+        return log_event, aws_event
+
     def test_lambda_no_tags(self, tags_cache_get_mock, _, send_method_mock):
         # GIVEN
-        log_forwarder = LogCollector()
         tags_cache_get_mock.return_value = None
-        cw_event = self._read_from_file('sample_lambda_log.json')
-        context = self._lambda_context()
-        event = {'awslogs': {'data': self._encode(json.dumps(cw_event))}}
+        event, cw_event = self._read_aws_log_event_from_file('sample_lambda_log.json')
 
         # WHEN
-        log_forwarder.forward_log(event, context)
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
 
         # THEN
-        log_message = cw_event['logEvents'][0]['message']
-        log_group = cw_event['logGroup']
-        log_stream = cw_event['logStream']
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
         function_name = log_group.split('/')[-1]
         arn = FORWARDER_FUNCTION_ARN_PREFIX + function_name
 
@@ -99,23 +101,19 @@ class LogForwardingSuite(TestCase):
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
 
-    def test_rds(self, tags_cache_get_mock, _, send_method_mock):
+    def test_rds_postgres(self, tags_cache_get_mock, _, send_method_mock):
         # GIVEN
-        log_forwarder = LogCollector()
-        cw_event = self._read_from_file('sample_rds_log.json')
-        context = self._lambda_context()
-        event = {'awslogs': {'data': self._encode(json.dumps(cw_event))}}
-
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_rds_postgres_log.json')
         # WHEN
-        log_forwarder.forward_log(event, context)
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
 
         # THEN
-        log_message = cw_event['logEvents'][0]['message']
-        log_group = cw_event['logGroup']
-        log_stream = cw_event['logStream']
-        db_type = log_group.split('/')[-1]
-        host = log_group.split('/')[-2]
-
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
+        _, _, _, _, host, db_type = log_group.split('/')
+        arn = f"arn:aws:rds:{AWS_REGION}:{AWS_ACCOUNT_ID}:db:{host}"
         expected_event = {
             "event": log_message,
             "time": "1597746012.000",
@@ -126,9 +124,75 @@ class LogForwardingSuite(TestCase):
                 "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
                 "region": AWS_REGION,
                 "aws_account_id": AWS_ACCOUNT_ID,
+                "arn": arn,
                 "dbType": db_type,
-                # TODO: check if can generate arn?
-                # **LAMBDA_CUSTOM_TAGS,
+                **CUSTOM_TAGS,
+            },
+            "host": host,
+            "source": "rds",
+
+        }
+        send_method_mock.assert_called_with([json.dumps(expected_event)])
+
+    def test_rds_mysql(self, tags_cache_get_mock, _, send_method_mock):
+        # GIVEN
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_rds_mysql_log.json')
+        # WHEN
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
+
+        # THEN
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
+        _, _, _, _, host, log_name = log_group.split('/')
+        arn = f"arn:aws:rds:{AWS_REGION}:{AWS_ACCOUNT_ID}:db:{host}"
+        expected_event = {
+            "event": log_message,
+            "time": "1598432405.376",
+            "sourcetype": "aws",
+            "fields": {
+                "logGroup": log_group,
+                "logStream": log_stream,
+                "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
+                "region": AWS_REGION,
+                "aws_account_id": AWS_ACCOUNT_ID,
+                "arn": arn,
+                "dbLogName": log_name,
+                **CUSTOM_TAGS,
+            },
+            "host": host,
+            "source": "rds",
+
+        }
+        send_method_mock.assert_called_with([json.dumps(expected_event)])
+
+    def test_rds_aurora_cluster(self, tags_cache_get_mock, _, send_method_mock):
+        # GIVEN
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_rds_aurora_cluster_log.json')
+        # WHEN
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
+
+        # THEN
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
+        _, _, _, _, host, log_name = log_group.split('/')
+        arn = f"arn:aws:rds:{AWS_REGION}:{AWS_ACCOUNT_ID}:cluster:{host}"
+        expected_event = {
+            "event": log_message,
+            "time": "1598432405.376",
+            "sourcetype": "aws",
+            "fields": {
+                "logGroup": log_group,
+                "logStream": log_stream,
+                "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
+                "region": AWS_REGION,
+                "aws_account_id": AWS_ACCOUNT_ID,
+                "arn": arn,
+                "dbLogName": log_name,
+                **CUSTOM_TAGS,
             },
             "host": host,
             "source": "rds",
@@ -138,19 +202,17 @@ class LogForwardingSuite(TestCase):
 
     def test_eks(self, tags_cache_get_mock, _, send_method_mock):
         # GIVEN
-        log_forwarder = LogCollector()
-        cw_event = self._read_from_file('sample_eks_log.json')
-        context = self._lambda_context()
-        event = {'awslogs': {'data': self._encode(json.dumps(cw_event))}}
-
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_eks_log.json')
         # WHEN
-        log_forwarder.forward_log(event, context)
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
 
         # THEN
-        log_message = cw_event['logEvents'][0]['message']
-        log_group = cw_event['logGroup']
-        log_stream = cw_event['logStream']
-
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
+        _, _, _, eks_cluster_name, _ = log_group.split("/")
+        arn = f"arn:aws:eks:{AWS_REGION}:{AWS_ACCOUNT_ID}:cluster/{eks_cluster_name}"
         expected_event = {
             "event": log_message,
             "time": "1597746392.945",
@@ -161,11 +223,46 @@ class LogForwardingSuite(TestCase):
                 "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
                 "region": AWS_REGION,
                 "aws_account_id": AWS_ACCOUNT_ID,
-                # TODO: check if can generate arn?
-                # **LAMBDA_CUSTOM_TAGS,
+                "arn": arn,
+                "eksClusterName": eks_cluster_name,
+                **CUSTOM_TAGS
             },
-            "host": log_group,
+            "host": eks_cluster_name,
             "source": "eks",
+        }
+
+        send_method_mock.assert_called_with([json.dumps(expected_event)])
+
+    def test_api_gateway(self, tags_cache_get_mock, _, send_method_mock):
+        # GIVEN
+        tags_cache_get_mock.return_value = CUSTOM_TAGS
+        event, cw_event = self._read_aws_log_event_from_file('sample_api_gateway_log.json')
+        # WHEN
+        self.log_forwarder.forward_log(cw_event, self._lambda_context())
+
+        # THEN
+        log_message = event['logEvents'][0]['message']
+        log_group = event['logGroup']
+        log_stream = event['logStream']
+
+        arn = "arn:aws:apigateway:us-east-1::/restapis/kgiqlx3nok/stages/prod"
+        expected_event = {
+            "event": log_message,
+            "time": "1598449007.634",
+            "sourcetype": "aws",
+            "fields": {
+                "logGroup": log_group,
+                "logStream": log_stream,
+                "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
+                "region": AWS_REGION,
+                "aws_account_id": AWS_ACCOUNT_ID,
+                "arn": arn,
+                "apiGatewayStage": "prod",
+                "apiGatewayId": "kgiqlx3nok",
+                **CUSTOM_TAGS
+            },
+            "host": arn,
+            "source": "apigateway",
         }
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])

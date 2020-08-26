@@ -1,0 +1,16 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "134183635603",
+  "logGroup": "/aws/rds/instance/kh-test-database-1/error",
+  "logStream": "kh-test-database-1",
+  "subscriptionFilters": [
+    "LambdaStream_karolLambdaLogReceiver"
+  ],
+  "logEvents": [
+    {
+      "id": "35646233789364586610853494076739968190231417587800735748",
+      "timestamp": 1598432405376,
+      "message": "2020-08-26T09:00:05.376465Z 0 [System] [MY-010116] [Server] /rdsdbbin/mysql/bin/mysqld (mysqld 8.0.17) starting as process 25111"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "134183635603",
+  "logGroup": "API-Gateway-Execution-Logs_kgiqlx3nok/prod",
+  "logStream": "88bd07bb8d0531c5e16708552cb88945",
+  "subscriptionFilters": [
+    "LambdaStream_karolLambdaLogReceiver"
+  ],
+  "logEvents": [
+    {
+      "id": "35646604032089964877479810700690729349399348831957483525",
+      "timestamp": 1598449007634,
+      "message": "(7a903de8-8fa2-4ea4-88c1-8e450af9d69a) HTTP Method: GET, Resource Path: /pets/"
+    }
+  ]
+}

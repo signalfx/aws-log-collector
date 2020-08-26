@@ -14,21 +14,14 @@ COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", 15 * 60))
 SFX_URL = os.getenv("SFX_URL", default="http://lab-ingest.corp.signalfx.com/v1/log")
 SFX_API_KEY = os.getenv("SFX_API_KEY", "<wrong-token>")
-
 LOG_GROUP_SOURCE_NAMES = [
-    "apigateway",
-    "cloudfront",
-    "codebuild",
-    "eks",
-    "fargate",
-    "kinesis",
     "lambda",
-    "sns",
     "rds",
-    "redshift",
-    "route53",
-    "vpc"
+    "eks",
+    "apigateway",
+    "kinesis"
 ]
+
 log = logging.getLogger()
 log.setLevel(logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO").upper()))
 
@@ -176,7 +169,7 @@ class TagsCache(object):
 
         try:
             for page in get_resources_paginator.paginate(
-                    ResourceTypeFilters=["lambda"], ResourcesPerPage=100
+                    ResourceTypeFilters=["lambda", "rds", "eks", "apigateway"], ResourcesPerPage=100
             ):
                 page_tags_by_arn = self.parse_get_resources_response_for_tags_by_arn(page)
                 tags_by_arn_cache.update(page_tags_by_arn)
@@ -233,16 +226,59 @@ class LogCollector:
             arn = arn_prefix + "function:" + function_name
             return {'host': arn, 'arn': arn, 'functionName': function_name}
 
-        def rds_enricher(_, log_group):
-            log_parts = log_group.split('/')[-2:]
-            return {'host': log_parts[0], 'dbType': log_parts[1]}
+        def rds_enricher(context, log_group):
+            log_group_parts = log_group.split('/')
+            enrichment = {}
+            if len(log_group_parts) == 6:
+                _, _, _, cluster_or_instance, host, _ = log_group_parts
+                enrichment['host'] = host
+                name = log_group_parts[5]
+                deployment_type = "db" if cluster_or_instance == "instance" else cluster_or_instance
+                region, account_id = _parse_invoked_function_arn(context)
+                enrichment['arn'] = f"arn:aws:rds:{region}:{account_id}:{deployment_type}:{host}"
+                if name == 'postgresql':
+                    enrichment['dbType'] = name
+                else:
+                    enrichment['dbLogName'] = name
+            else:
+                log.warning(f"Cannot parse rds logGroup = {log_group}")
+            return enrichment
+
+        def eks_enricher(context, log_group):
+            _, _, _, region, account_id, _, _ = context.invoked_function_arn.split(":")
+            log_group_parts = log_group.split("/")
+            if len(log_group_parts) == 5:
+                _, _, _, eks_cluster_name, _ = log_group.split("/")
+                arn = f"arn:aws:eks:{region}:{account_id}:cluster/{eks_cluster_name}"
+                return {'host': eks_cluster_name, 'arn': arn, 'eksClusterName': eks_cluster_name}
+            else:
+                log.warning(f"Cannot parse eks logGroup = {log_group}")
+                return default_enricher(context, log_group)
+
+        def api_gateway_enricher(context, log_group):
+            log_group_parts = log_group.split("/")
+            if len(log_group_parts) == 2:
+                prefix, stage = log_group_parts
+                api_gateway_id = prefix.split("_")[-1]
+                region, _ = _parse_invoked_function_arn(context)
+                arn = f"arn:aws:apigateway:{region}::/restapis/{api_gateway_id}/stages/{stage}"
+                return {'arn': arn, 'host': arn, 'apiGatewayStage': stage, 'apiGatewayId': api_gateway_id}
+            else:
+                log.warning(f"Cannot parse apigateway logGroup = {log_group}")
+                return default_enricher(context, log_group)
 
         def default_enricher(_, log_group):
             return {'host': log_group}
 
+        def _parse_invoked_function_arn(context):
+            _, _, _, region, account_id, _, _ = context.invoked_function_arn.split(":")
+            return region, account_id
+
         enrichers = {
             'lambda': lambda_enricher,
-            'rds': rds_enricher
+            'rds': rds_enricher,
+            'eks': eks_enricher,
+            'apigateway': api_gateway_enricher
         }
         return enrichers.get(source, default_enricher)
 
@@ -251,6 +287,8 @@ class LogCollector:
             for aws_source in LOG_GROUP_SOURCE_NAMES:
                 if aws_source in log_group:
                     return aws_source
+            if log_group.startswith("api-gateway-"):
+                return "apigateway"
             return "cloudwatch"
 
         def _get_region(arn):
