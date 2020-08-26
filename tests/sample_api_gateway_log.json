@@ -4,7 +4,7 @@
   "logGroup": "API-Gateway-Execution-Logs_kgiqlx3nok/prod",
   "logStream": "88bd07bb8d0531c5e16708552cb88945",
   "subscriptionFilters": [
-    "LambdaStream_karolLambdaLogReceiver"
+    "LambdaStream_LambdaLogReceiver"
   ],
   "logEvents": [
     {

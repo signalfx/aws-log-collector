@@ -4,7 +4,7 @@
   "logGroup": "/aws/rds/instance/kh-test-database-1/error",
   "logStream": "kh-test-database-1",
   "subscriptionFilters": [
-    "LambdaStream_karolLambdaLogReceiver"
+    "LambdaStream_LambdaLogReceiver"
   ],
   "logEvents": [
     {

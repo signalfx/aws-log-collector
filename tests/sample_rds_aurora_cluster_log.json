@@ -1,10 +1,10 @@
 {
   "messageType": "DATA_MESSAGE",
   "owner": "134183635603",
-  "logGroup": "/aws/rds/cluster/test-karol-database-1/error",
-  "logStream": "test-karol-database-1-instance-1",
+  "logGroup": "/aws/rds/cluster/test-database-1/error",
+  "logStream": "test-database-1-instance-1",
   "subscriptionFilters": [
-    "LambdaStream_karolLambdaLogReceiver"
+    "LambdaStream_LambdaLogReceiver"
   ],
   "logEvents": [
     {
