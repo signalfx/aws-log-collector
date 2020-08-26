@@ -18,8 +18,7 @@ LOG_GROUP_SOURCE_NAMES = [
     "lambda",
     "rds",
     "eks",
-    "apigateway",
-    "kinesis"
+    "apigateway"
 ]
 
 log = logging.getLogger()
