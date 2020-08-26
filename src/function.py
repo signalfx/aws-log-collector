@@ -244,7 +244,7 @@ class LogCollector:
             return enrichment
 
         def eks_enricher(context, log_group):
-            _, _, _, region, account_id, _, _ = context.invoked_function_arn.split(":")
+            region, account_id = _parse_invoked_function_arn(context)
             log_group_parts = log_group.split("/")
             if len(log_group_parts) == 5:
                 _, _, _, eks_cluster_name, _ = log_group.split("/")
