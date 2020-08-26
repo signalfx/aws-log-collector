@@ -14,12 +14,12 @@ COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", 15 * 60))
 SFX_URL = os.getenv("SFX_URL", default="http://lab-ingest.corp.signalfx.com/v1/log")
 SFX_API_KEY = os.getenv("SFX_API_KEY", "<wrong-token>")
-LOG_GROUP_SOURCE_NAMES = [
-    "lambda",
-    "rds",
-    "eks",
-    "apigateway"
-]
+LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING = {
+    "/aws/lambda": "lambda",
+    "/aws/rds": "rds",
+    "/aws/eks": "eks",
+    "api-gateway-": "api-gateway"
+}
 
 log = logging.getLogger()
 log.setLevel(logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO").upper()))
@@ -277,18 +277,16 @@ class LogCollector:
             'lambda': lambda_enricher,
             'rds': rds_enricher,
             'eks': eks_enricher,
-            'apigateway': api_gateway_enricher
+            'api-gateway': api_gateway_enricher
         }
         return enrichers.get(source, default_enricher)
 
     def _basic_enrichment(self, logs, context):
         def _get_source(log_group):
-            for aws_source in LOG_GROUP_SOURCE_NAMES:
-                if aws_source in log_group:
-                    return aws_source
-            if log_group.startswith("api-gateway-"):
-                return "apigateway"
-            return "cloudwatch"
+            for prefix, source in LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING.items():
+                if log_group.startswith(prefix):
+                    return source
+            return "aws-other"
 
         def _get_region(arn):
             split_arn = arn.split(":")
@@ -303,7 +301,7 @@ class LogCollector:
                       'source': _get_source(log_group.lower()),
                       'logForwarder': context.function_name.lower() + ":" + context.function_version,
                       'region': _get_region(context.invoked_function_arn),
-                      'aws_account_id': logs['owner']}
+                      'awsAccountId': logs['owner']}
         namespace_metadata = self._enricher_factory(enrichment['source'])(context, log_group)
         enrichment.update(namespace_metadata)
         logs['enrichment'] = enrichment
