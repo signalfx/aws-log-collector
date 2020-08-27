@@ -12,8 +12,8 @@ import requests
 MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
 COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", 15 * 60))
-SFX_URL = os.getenv("SFX_URL", default="http://lab-ingest.corp.signalfx.com/v1/log")
-SFX_API_KEY = os.getenv("SFX_API_KEY", "<wrong-token>")
+SPLUNK_URL = os.getenv("SPLUNK_URL", default="<unknown>")
+SPLUNK_API_KEY = os.getenv("SPLUNK_API_KEY", "<wrong-token>")
 LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING = {
     "/aws/lambda": "lambda",
     "/aws/rds": "rds",
@@ -91,7 +91,7 @@ class Batcher(object):
         return len(str(item).encode("UTF-8"))
 
 
-class SfxHTTPClient(object):
+class SplunkHTTPClient(object):
 
     def __init__(self, host, api_key, timeout=10):
         self._url = host
@@ -313,7 +313,7 @@ class LogCollector:
     @staticmethod
     def _send_logs(logs):
         batcher = Batcher(MAX_REQUEST_SIZE_IN_BYTES)
-        http_client = SfxHTTPClient(SFX_URL, SFX_API_KEY)
+        http_client = SplunkHTTPClient(SPLUNK_URL, SPLUNK_API_KEY)
 
         with RetryableClient(http_client) as client:
             for batch in batcher.batch(logs):

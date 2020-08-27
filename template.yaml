@@ -1,27 +1,27 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SAM template for deploying Splunk Cloudwatch Logs Forwarder
+Description: SAM template for deploying Splunk AWS Logs Forwarder
 
 Parameters:
-  SignalFxAPIKey:
+  SplunkAPIKey:
     Type: String
-  SignalFxLogIngestUrl:
+  SplunkLogIngestUrl:
     Type: String
 
 Resources:
-  SplunkCloudwatchLogsForwarder:
+  SplunkAwsLogsForwarder:
     Type: AWS::Serverless::Function
-    Description: WIP SplunkCloudwatchLogsForwarder
+    Description: WIP SplunkAwsLogsForwarder
     Properties:
-      FunctionName: splunk-cloudwatch-logs-forwarder
+      FunctionName: splunk-aws-logs-forwarder
       Runtime: python3.7
       Timeout: 60
       CodeUri: ./src
       Handler: function.lambda_handler
       Environment:
         Variables:
-          SFX_API_KEY: !Ref SignalFxAPIKey
-          SFX_URL: !Ref SignalFxLogIngestUrl
+          SPLUNK_API_KEY: !Ref SplunkAPIKey
+          SPLUNK_URL: !Ref SplunkLogIngestUrl
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -35,5 +35,5 @@ Outputs:
   LambdaArn:
     Value:
       Fn::GetAtt:
-        - SplunkCloudwatchLogsForwarder
+        - SplunkAwsLogsForwarder
         - Arn

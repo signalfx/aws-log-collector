@@ -15,12 +15,12 @@ CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
 AWS_REGION = "us-east-1"
 AWS_ACCOUNT_ID = "134183635603"
 FORWARDER_FUNCTION_ARN_PREFIX = f"arn:aws:lambda:{AWS_REGION}:{AWS_ACCOUNT_ID}:function:"
-FORWARDER_FUNCTION_NAME = 'sfx_aws_log_forwarder'
+FORWARDER_FUNCTION_NAME = 'splunk_aws_log_forwarder'
 FORWARDER_FUNCTION_VERSION = '1.0.1'
 
 
 @patch.object(RetryableClient, "send")
-@patch('function.SfxHTTPClient')
+@patch('function.SplunkHTTPClient')
 @patch.object(TagsCache, "get")
 class LogForwardingSuite(TestCase):
 
@@ -282,7 +282,7 @@ class LogForwardingSuite(TestCase):
         context = LambdaContext()
         context.function_name = FORWARDER_FUNCTION_NAME
         context.function_version = FORWARDER_FUNCTION_VERSION
-        context.invoked_function_arn = FORWARDER_FUNCTION_ARN_PREFIX + "sfx_aws_log_forwarder"
+        context.invoked_function_arn = FORWARDER_FUNCTION_ARN_PREFIX + "splunk_aws_log_forwarder"
         return context
 
 
