@@ -216,8 +216,7 @@ class LogCollector:
             data = b"".join(BufferedReader(decompress_stream))
         return json.loads(data)
 
-    @staticmethod
-    def _enricher_factory(source):
+    def _enricher_factory(self, source):
         def lambda_enricher(context, log_group):
             fwd_arn_parts = context.invoked_function_arn.split('function')
             arn_prefix = fwd_arn_parts[0]
@@ -227,27 +226,27 @@ class LogCollector:
 
         def rds_enricher(context, log_group):
             log_group_parts = log_group.split('/')
-            enrichment = {}
             if len(log_group_parts) == 6:
-                _, _, _, cluster_or_instance, host, _ = log_group_parts
-                enrichment['host'] = host
-                name = log_group_parts[5]
+                _, _, _, cluster_or_instance, host, name = log_group_parts
                 deployment_type = "db" if cluster_or_instance == "instance" else cluster_or_instance
-                region, account_id = _parse_invoked_function_arn(context)
-                enrichment['arn'] = f"arn:aws:rds:{region}:{account_id}:{deployment_type}:{host}"
+                region, account_id = self._parse_log_collector_function_arn(context)
+                enrichment = {'host': host,
+                              'arn': f"arn:aws:rds:{region}:{account_id}:{deployment_type}:{host}"}
                 if name == 'postgresql':
+                    # only for postgresql we can detect dbType
                     enrichment['dbType'] = name
                 else:
                     enrichment['dbLogName'] = name
+                return enrichment
             else:
                 log.warning(f"Cannot parse rds logGroup = {log_group}")
-            return enrichment
+                return default_enricher(context, log_group)
 
         def eks_enricher(context, log_group):
-            region, account_id = _parse_invoked_function_arn(context)
             log_group_parts = log_group.split("/")
             if len(log_group_parts) == 5:
-                _, _, _, eks_cluster_name, _ = log_group.split("/")
+                region, account_id = self._parse_log_collector_function_arn(context)
+                _, _, _, eks_cluster_name, _ = log_group_parts
                 arn = f"arn:aws:eks:{region}:{account_id}:cluster/{eks_cluster_name}"
                 return {'host': eks_cluster_name, 'arn': arn, 'eksClusterName': eks_cluster_name}
             else:
@@ -259,7 +258,7 @@ class LogCollector:
             if len(log_group_parts) == 2:
                 prefix, stage = log_group_parts
                 api_gateway_id = prefix.split("_")[-1]
-                region, _ = _parse_invoked_function_arn(context)
+                region, _ = self._parse_log_collector_function_arn(context)
                 arn = f"arn:aws:apigateway:{region}::/restapis/{api_gateway_id}/stages/{stage}"
                 return {'arn': arn, 'host': arn, 'apiGatewayStage': stage, 'apiGatewayId': api_gateway_id}
             else:
@@ -268,10 +267,6 @@ class LogCollector:
 
         def default_enricher(_, log_group):
             return {'host': log_group}
-
-        def _parse_invoked_function_arn(context):
-            _, _, _, region, account_id, _, _ = context.invoked_function_arn.split(":")
-            return region, account_id
 
         enrichers = {
             'lambda': lambda_enricher,
@@ -282,25 +277,20 @@ class LogCollector:
         return enrichers.get(source, default_enricher)
 
     def _basic_enrichment(self, logs, context):
+
         def _get_source(log_group):
+            log_group_lower = log_group.lower()
             for prefix, source in LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING.items():
-                if log_group.startswith(prefix):
+                if log_group_lower.startswith(prefix):
                     return source
             return "aws-other"
-
-        def _get_region(arn):
-            split_arn = arn.split(":")
-            if len(split_arn) > 7:
-                split_arn = split_arn[:7]
-            _, _, _, region, _, _, _ = split_arn
-            return region
 
         log_group = logs['logGroup']
         enrichment = {'logGroup': log_group,
                       'logStream': logs['logStream'],
-                      'source': _get_source(log_group.lower()),
+                      'source': _get_source(log_group),
                       'logForwarder': context.function_name.lower() + ":" + context.function_version,
-                      'region': _get_region(context.invoked_function_arn),
+                      'region': self._parse_log_collector_function_arn(context)[0],
                       'awsAccountId': logs['owner']}
         namespace_metadata = self._enricher_factory(enrichment['source'])(context, log_group)
         enrichment.update(namespace_metadata)
@@ -356,6 +346,11 @@ class LogCollector:
         return '%s(%s)' % (
             type(context).__name__,
             ', '.join('%s=%s' % item for item in vars(context).items()))
+
+    @staticmethod
+    def _parse_log_collector_function_arn(context):
+        _, _, _, region, account_id, _, _ = context.invoked_function_arn.split(":")
+        return region, account_id
 
 
 log_forwarder = LogCollector()
