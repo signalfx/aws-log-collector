@@ -1,0 +1,16 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "134183635603",
+  "logGroup": "/aws/rds/cluster/test-database-1/error",
+  "logStream": "test-database-1-instance-1",
+  "subscriptionFilters": [
+    "LambdaStream_LambdaLogReceiver"
+  ],
+  "logEvents": [
+    {
+      "id": "35646233789364586610853494076739968190231417587800735748",
+      "timestamp": 1598432405376,
+      "message": "2020-08-25 11:22:34 4890 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins"
+    }
+  ]
+}

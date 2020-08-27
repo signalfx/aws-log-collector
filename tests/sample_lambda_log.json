@@ -1,10 +1,10 @@
 {
   "messageType": "DATA_MESSAGE",
   "owner": "134183635603",
-  "logGroup": "/aws/lambda/test_kh_log_producer",
+  "logGroup": "/aws/lambda/test_log_producer",
   "logStream": "2020/07/21/[1]1d2c383013c845c589ead2fc607da422",
   "subscriptionFilters": [
-    "forwarding logs"
+    "LambdaStream_LambdaLogReceiver"
   ],
   "logEvents": [
     {

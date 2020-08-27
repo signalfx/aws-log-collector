@@ -4,7 +4,7 @@
   "logGroup": "/aws/rds/instance/druid-lab0/postgresql",
   "logStream": "druid-lab0.0",
   "subscriptionFilters": [
-    "LambdaStream_test_kh_cw_log_fwd"
+    "LambdaStream_LambdaLogReceiver"
   ],
   "logEvents": [
     {
