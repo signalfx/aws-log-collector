@@ -4,7 +4,7 @@ import boto3
 
 from logger import log
 
-LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING = {
+LOG_GROUP_NAME_PREFIX_TO_NAMESPACE_MAPPING = {
     "/aws/lambda": "lambda",
     "/aws/rds": "rds",
     "/aws/eks": "eks",
@@ -28,20 +28,20 @@ class LogEnricher:
 
     def _basic_enrichment(self, logs, context):
 
-        def _get_source(log_group):
+        def _get_aws_namespace(log_group):
             log_group_lower = log_group.lower()
-            for prefix, source in LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING.items():
+            for prefix, source in LOG_GROUP_NAME_PREFIX_TO_NAMESPACE_MAPPING.items():
                 if log_group_lower.startswith(prefix):
                     return source
             return "other"
 
         log_group = logs['logGroup']
-        source = _get_source(log_group)
+        aws_namespace = _get_aws_namespace(log_group)
         metadata = {'index': 'main',
                       'logGroup': log_group,
                       'logStream': logs['logStream'],
-                      'source': source,
-                      'sourcetype': "aws:" + source,
+                      'source': aws_namespace,
+                      'sourcetype': "aws:" + aws_namespace,
                       'logForwarder': context.function_name.lower() + ":" + context.function_version,
                       'region': self._parse_log_collector_function_arn(context)[0],
                       'awsAccountId': logs['owner']}
