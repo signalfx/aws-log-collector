@@ -250,7 +250,7 @@ def lambda_context():
     context = LambdaContext()
     context.function_name = FORWARDER_FUNCTION_NAME
     context.function_version = FORWARDER_FUNCTION_VERSION
-    context.invoked_function_arn = FORWARDER_FUNCTION_ARN_PREFIX + "splunk_aws_log_forwarder"
+    context.invoked_function_arn = FORWARDER_FUNCTION_ARN_PREFIX + FORWARDER_FUNCTION_NAME
     return context
 
 

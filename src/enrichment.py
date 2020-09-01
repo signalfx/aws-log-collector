@@ -122,9 +122,7 @@ class LogEnricher:
                     enrichment[tag_name] = tags[tag_name]
                 else:
                     log.debug(f"Skipping tag with reserved name {tag_name}")
-            return enrichment
-        else:
-            return enrichment
+        return enrichment
 
     @staticmethod
     def _parse_log_collector_function_arn(context):

@@ -8,11 +8,11 @@ from logger import log
 from client import BatchClient
 from enrichment import LogEnricher
 
-SPLUNK_URL = os.getenv("SPLUNK_URL", default="<unknown>")
-SPLUNK_API_KEY = os.getenv("SPLUNK_API_KEY", "<wrong-token>")
-MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", 1024 * 800))
-COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", 6))
-TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", 15 * 60))
+SPLUNK_URL = os.getenv("SPLUNK_URL", default="<unknown-url>")
+SPLUNK_API_KEY = os.getenv("SPLUNK_API_KEY", default="<unknown-token>")
+MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", default=1024 * 800))
+COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", default=6))
+TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60))
 
 
 class LogCollector:
@@ -47,19 +47,26 @@ class LogCollector:
 
     @staticmethod
     def _convert_to_hec(logs, metadata):
+
+        def _get_fields():
+            result = dict(metadata)
+            del result['index']
+            del result['host']
+            del result['source']
+            del result['sourcetype']
+            return result
+
+        fields = _get_fields()
         for item in logs["logEvents"]:
             timestamp_as_string = str(item['timestamp'])
-            hec_item = {'index': metadata['index'],
-                        'event': item['message'],
-                        "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
-                        'sourcetype': metadata['sourcetype'],
-                        'fields': dict(metadata),
+            hec_item = {'event': item['message'],
+                        'index': metadata['index'],
+                        'fields': fields,
                         'host': metadata['host'],
-                        'source': metadata['source']}
-            del hec_item['fields']['index']
-            del hec_item['fields']['host']
-            del hec_item['fields']['source']
-            del hec_item['fields']['sourcetype']
+                        'source': metadata['source'],
+                        'sourcetype': metadata['sourcetype'],
+                        "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
+                        }
 
             yield json.dumps(hec_item)
 

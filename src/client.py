@@ -12,8 +12,6 @@ class BatchClient(object):
     @staticmethod
     def create(url, api_key, max_request_size_in_bytes, compression_level, max_retry=3):
         client = RetryableClient.create(url, api_key, compression_level)
-        max_retry = max_retry
-        _max_batch_size_bytes = max_request_size_in_bytes
         return BatchClient(client, max_request_size_in_bytes, max_retry)
 
     def __init__(self, client, max_request_size_in_bytes, max_retry):
