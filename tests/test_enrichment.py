@@ -225,8 +225,8 @@ class LogEnrichmentSuite(TestCase):
         region, account_id = self.log_enricher._parse_log_collector_function_arn(context)
 
         # THEN
-        self.assertEquals(AWS_REGION, region)
-        self.assertEquals(AWS_ACCOUNT_ID, account_id)
+        self.assertEqual(AWS_REGION, region)
+        self.assertEqual(AWS_ACCOUNT_ID, account_id)
 
     def test_parse_lambda_arn_with_version(self):
         # GIVEN
@@ -237,8 +237,8 @@ class LogEnrichmentSuite(TestCase):
         region, account_id = self.log_enricher._parse_log_collector_function_arn(context)
 
         # THEN
-        self.assertEquals(AWS_REGION, region)
-        self.assertEquals(AWS_ACCOUNT_ID, account_id)
+        self.assertEqual(AWS_REGION, region)
+        self.assertEqual(AWS_ACCOUNT_ID, account_id)
 
 
 def read_from_file(file_name):
