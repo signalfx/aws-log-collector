@@ -43,7 +43,8 @@ class LogEnrichmentSuite(TestCase):
             "arn": arn,
             "functionName": function_name,
             "host": arn,
-            "source": "aws:lambda",
+            "source": "lambda",
+            "sourcetype": "aws:lambda",
             "index": "main",
             **CUSTOM_TAGS
         }
@@ -71,7 +72,8 @@ class LogEnrichmentSuite(TestCase):
             "arn": arn,
             "functionName": function_name,
             "host": arn,
-            "source": "aws:lambda",
+            "source": "lambda",
+            "sourcetype": "aws:lambda",
             "index": "main",
         }
         self.assertEqual(expected, actual)
@@ -97,7 +99,8 @@ class LogEnrichmentSuite(TestCase):
             "dbType": db_type,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "aws:rds",
+            "source": "rds",
+            "sourcetype": "aws:rds",
             "index": "main",
         }
         self.assertEqual(expected, actual)
@@ -123,7 +126,8 @@ class LogEnrichmentSuite(TestCase):
             "dbLogName": log_name,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "aws:rds",
+            "source": "rds",
+            "sourcetype": "aws:rds",
             "index": "main",
 
         }
@@ -150,7 +154,8 @@ class LogEnrichmentSuite(TestCase):
             "dbLogName": log_name,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "aws:rds",
+            "source": "rds",
+            "sourcetype": "aws:rds",
             "index": "main",
 
         }
@@ -177,7 +182,8 @@ class LogEnrichmentSuite(TestCase):
             "eksClusterName": eks_cluster_name,
             **CUSTOM_TAGS,
             "host": eks_cluster_name,
-            "source": "aws:eks",
+            "source": "eks",
+            "sourcetype": "aws:eks",
             "index": "main",
         }
 
@@ -203,7 +209,8 @@ class LogEnrichmentSuite(TestCase):
             "apiGatewayStage": "prod",
             "apiGatewayId": "kgiqlx3nok",
             "host": arn,
-            "source": "aws:api-gateway",
+            "source": "api-gateway",
+            "sourcetype": "aws:api-gateway",
             "index": "main",
             **CUSTOM_TAGS,
         }

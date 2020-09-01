@@ -5,10 +5,10 @@ import boto3
 from logger import log
 
 LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING = {
-    "/aws/lambda": "aws:lambda",
-    "/aws/rds": "aws:rds",
-    "/aws/eks": "aws:eks",
-    "api-gateway-": "aws:api-gateway"
+    "/aws/lambda": "lambda",
+    "/aws/rds": "rds",
+    "/aws/eks": "eks",
+    "api-gateway-": "api-gateway"
 }
 
 
@@ -33,13 +33,15 @@ class LogEnricher:
             for prefix, source in LOG_GROUP_NAME_PREFIX_TO_SOURCE_MAPPING.items():
                 if log_group_lower.startswith(prefix):
                     return source
-            return "aws:other"
+            return "other"
 
         log_group = logs['logGroup']
+        source = _get_source(log_group)
         metadata = {'index': 'main',
                       'logGroup': log_group,
                       'logStream': logs['logStream'],
-                      'source': _get_source(log_group),
+                      'source': source,
+                      'sourcetype': "aws:" + source,
                       'logForwarder': context.function_name.lower() + ":" + context.function_version,
                       'region': self._parse_log_collector_function_arn(context)[0],
                       'awsAccountId': logs['owner']}
@@ -100,10 +102,10 @@ class LogEnricher:
             return {'host': log_group}
 
         enrichers = {
-            'aws:lambda': lambda_enricher,
-            'aws:rds': rds_enricher,
-            'aws:eks': eks_enricher,
-            'aws:api-gateway': api_gateway_enricher
+            'lambda': lambda_enricher,
+            'rds': rds_enricher,
+            'eks': eks_enricher,
+            'api-gateway': api_gateway_enricher
         }
         return enrichers.get(source, default_enricher)
 

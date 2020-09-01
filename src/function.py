@@ -52,13 +52,14 @@ class LogCollector:
             hec_item = {'index': metadata['index'],
                         'event': item['message'],
                         "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
-                        'sourcetype': 'aws',
+                        'sourcetype': metadata['sourcetype'],
                         'fields': dict(metadata),
                         'host': metadata['host'],
                         'source': metadata['source']}
             del hec_item['fields']['index']
             del hec_item['fields']['host']
             del hec_item['fields']['source']
+            del hec_item['fields']['sourcetype']
 
             yield json.dumps(hec_item)
 

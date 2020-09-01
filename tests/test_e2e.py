@@ -38,7 +38,7 @@ class LogCollectingSuite(TestCase):
             "index": "main",
             "event": log_message,
             "time": "1595335478.131",
-            "sourcetype": "aws",
+            "sourcetype": "aws:lambda",
             "fields": {
                 "logGroup": log_group,
                 "logStream": log_stream,
@@ -50,7 +50,7 @@ class LogCollectingSuite(TestCase):
                 **CUSTOM_TAGS,
             },
             "host": arn,
-            "source": "aws:lambda",
+            "source": "lambda",
         }
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
