@@ -43,7 +43,8 @@ class LogEnrichmentSuite(TestCase):
             "arn": arn,
             "functionName": function_name,
             "host": arn,
-            "source": "lambda",
+            "source": "aws:lambda",
+            "index": "main",
             **CUSTOM_TAGS
         }
         self.assertEqual(expected, actual)
@@ -70,7 +71,8 @@ class LogEnrichmentSuite(TestCase):
             "arn": arn,
             "functionName": function_name,
             "host": arn,
-            "source": "lambda",
+            "source": "aws:lambda",
+            "index": "main",
         }
         self.assertEqual(expected, actual)
 
@@ -95,8 +97,8 @@ class LogEnrichmentSuite(TestCase):
             "dbType": db_type,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "rds",
-
+            "source": "aws:rds",
+            "index": "main",
         }
         self.assertEqual(expected, actual)
 
@@ -121,7 +123,8 @@ class LogEnrichmentSuite(TestCase):
             "dbLogName": log_name,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "rds",
+            "source": "aws:rds",
+            "index": "main",
 
         }
         self.assertEqual(expected, actual)
@@ -147,7 +150,8 @@ class LogEnrichmentSuite(TestCase):
             "dbLogName": log_name,
             **CUSTOM_TAGS,
             "host": host,
-            "source": "rds",
+            "source": "aws:rds",
+            "index": "main",
 
         }
         self.assertEqual(expected, actual)
@@ -173,7 +177,8 @@ class LogEnrichmentSuite(TestCase):
             "eksClusterName": eks_cluster_name,
             **CUSTOM_TAGS,
             "host": eks_cluster_name,
-            "source": "eks",
+            "source": "aws:eks",
+            "index": "main",
         }
 
         self.assertEqual(expected, actual)
@@ -198,11 +203,35 @@ class LogEnrichmentSuite(TestCase):
             "apiGatewayStage": "prod",
             "apiGatewayId": "kgiqlx3nok",
             "host": arn,
-            "source": "api-gateway",
+            "source": "aws:api-gateway",
+            "index": "main",
             **CUSTOM_TAGS,
         }
 
         self.assertEqual(expected, actual)
+
+    def test_parse_lambda_arn_without_version(self):
+        # GIVEN
+        context = lambda_context()
+
+        # WHEN
+        region, account_id = self.log_enricher._parse_log_collector_function_arn(context)
+
+        # THEN
+        self.assertEquals(AWS_REGION, region)
+        self.assertEquals(AWS_ACCOUNT_ID, account_id)
+
+    def test_parse_lambda_arn_with_version(self):
+        # GIVEN
+        context = lambda_context()
+        context.invoked_function_arn += ":33"
+
+        # WHEN
+        region, account_id = self.log_enricher._parse_log_collector_function_arn(context)
+
+        # THEN
+        self.assertEquals(AWS_REGION, region)
+        self.assertEquals(AWS_ACCOUNT_ID, account_id)
 
 
 def read_from_file(file_name):

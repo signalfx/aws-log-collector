@@ -49,12 +49,14 @@ class LogCollector:
     def _convert_to_hec(logs, metadata):
         for item in logs["logEvents"]:
             timestamp_as_string = str(item['timestamp'])
-            hec_item = {'event': item['message'],
+            hec_item = {'index': metadata['index'],
+                        'event': item['message'],
                         "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
                         'sourcetype': 'aws',
                         'fields': dict(metadata),
                         'host': metadata['host'],
                         'source': metadata['source']}
+            del hec_item['fields']['index']
             del hec_item['fields']['host']
             del hec_item['fields']['source']
 

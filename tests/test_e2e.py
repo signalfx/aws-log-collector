@@ -35,6 +35,7 @@ class LogCollectingSuite(TestCase):
         arn = FORWARDER_FUNCTION_ARN_PREFIX + function_name
 
         expected_event = {
+            "index": "main",
             "event": log_message,
             "time": "1595335478.131",
             "sourcetype": "aws",
@@ -49,7 +50,7 @@ class LogCollectingSuite(TestCase):
                 **CUSTOM_TAGS,
             },
             "host": arn,
-            "source": "lambda",
+            "source": "aws:lambda",
         }
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
