@@ -30,9 +30,16 @@ then
       exit 1
   fi
 
+  sam build --profile ${PROFILE} --build-dir .out
+  if [[ $? -ne 0 ]]
+    then
+      echo "Python build failed. Stopping the execution."
+      exit 1
+  fi
+
   echo "Packaging template, uploading code to s3..."
   #sam package creates packaged.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
-  RAW=`sam package --profile ${PROFILE} --template-file template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
+  RAW=`sam package --profile ${PROFILE} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
 
   if [[ $? -ne 0 ]]
     then

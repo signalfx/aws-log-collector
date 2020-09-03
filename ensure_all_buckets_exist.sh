@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "usage: ./create_all_buckets.sh. Make sure AWS_SECRET_ACCESS_KEY and AWS_ACCESS_KEY_ID variables are set and point to the right account.
+    echo "usage: ./ensure_all_buckets_exist.sh. Make sure AWS_SECRET_ACCESS_KEY and AWS_ACCESS_KEY_ID variables are set and point to the right account.
     --bucket-name-prefix            (required), will be concatenated with region to create a bucket name
     --profile                       (required), will be used to issue aws commands
     "
