@@ -1,24 +1,21 @@
 # aws-log-collector
 Code and deployment scripts for AWS lambda forwarding AWS logs to o11y log ingest
 
-# CloudFormation template preparation
-1. `template.yaml` uses a Serverless "dialect" of CloudFormation.
- Before it can be used as a CloudFormation template, it needs to be transformed to valid CloudFormation file.
+## Overview
+* `template.yaml` uses a Serverless "dialect" of CloudFormation. Before it can be used as a CloudFormation template, it needs to be transformed to valid CloudFormation file.
+* Lambda code (or .zip) location is defined in `template.yaml` and needs to be uploaded to s3 bucket in order for CloudFormation to be able to reference it. It will happen under the hood when you run scripts below.
  
-2. In order to transform the file:
-    1. Make sure you have access to the S3 bucket with appropriate serverless policy. If bucket does not exist, you can create it
-    with `ensure_bucket_exists.sh --bucket-name-prefix <yourbucket>`. Make sure to set AWS credentials as environment variables.
-    2. Run validation:
-    `sam validate --profile <aws_profile> --template-file template.yaml`
-    3. Run packaging:
-    `sam package --profile <aws_profile> --template-file template.yaml --output-template-file packaged.yaml --s3-bucket <bucket>`.
-    This will upload the code of the function to the bucket and create a packaged.yaml file locally.
+## Releasing
+0. Edit the loop in `./create_all_buckets.sh` and `./upload_packaged_to_all_buckets.sh` to loop over all regions you need them to!
+
+1. Make sure S3 buckets in all target regions exist (if bucket exists, the script won't touch it).
+   `./create_all_buckets.sh --profile <aws_profile> --bucket-name-prefix <yourbucket>`
+   
+2. Transform the file, upload artifacts (code) and upload resulting `packaged.yaml` to target AWS account and regions:
+   `./upload_packaged_to_all_buckets.sh --profile <aws_profile> --bucket-name-prefix <yourbucket>`
     
-# Creating a quick link to the template.
+## Quick link to the template.
 
-3. In order to create a quick link to the template, one needs to upload it to s3 bucket and make it publicly accessible. 
-The template needs to be uploaded to each region in which we want quick links to work. Make sure to upload `packaged.yaml` file, and not the source `template.yaml`.
-
-4. The quick link format:
-`https://<region>.console.aws.amazon.com/cloudformation/home?region=<region>#/stacks/create/review?templateURL=https://<templateUrl>/packaged.yaml&param_IntegrationId=<integrationId>&param_SignalFxAPIKey=<accessKey>&param_SignalFxLogIngestUrl=<ingestUrl>`
+The quick link format is:
+`https://<region>.console.aws.amazon.com/cloudformation/home?region=<region>#/stacks/create/review?templateURL=https://<templateUrl>/packaged.yaml&param_IntegrationId=<integrationId>&param_SplunkAPIKey=<accessKey>&param_SplunkLogIngestUrl=<ingestUrl>`
 

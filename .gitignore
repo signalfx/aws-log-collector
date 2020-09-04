@@ -1,1 +1,6 @@
 .idea
+*.txt
+samconfig.toml
+.aws-sam
+packaged.yaml
+serverless-bucket-policy-replaced.json
