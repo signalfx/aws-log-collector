@@ -39,7 +39,7 @@ then
 
   echo "Packaging template, uploading code to s3..."
   #sam package creates packaged.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
-  RAW=`sam package --profile ${PROFILE} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
+  RAW=`sam package --profile ${PROFILE} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-prefix aws-log-collector --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
 
   if [[ $? -ne 0 ]]
     then
@@ -48,11 +48,11 @@ then
   fi
 
   #extract the name of the uploaded file
-  EXTRACTED=`echo ${RAW} | sed -En 's/(.*)Uploading to ([a-zA-Z0-9]*)(.*)/\2/p'`
+  EXTRACTED=`echo ${RAW} | sed -En 's/(.*)Uploading to aws-log-collector\/([a-zA-Z0-9]*)(.*)/\2/p'`
   echo "File $EXTRACTED with lambda code uploaded."
 
   echo "Granting public access to $EXTRACTED ..."
-  aws s3api put-object-acl --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key ${EXTRACTED}
+  aws s3api put-object-acl --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/${EXTRACTED}
   if [[ $? -ne 0 ]]
     then
       echo "Could not grant public read to the uploaded artifact $EXTRACTED. Stopping the execution."
@@ -60,7 +60,7 @@ then
   fi
 
   echo "Uploading packaged.yaml to bucket $BUCKET_NAME..."
-  aws s3api put-object --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key packaged.yaml --body packaged.yaml
+  aws s3api put-object --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged.yaml --body packaged.yaml
 
   if [[ $? -ne 0 ]]
     then
