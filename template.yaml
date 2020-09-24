@@ -33,7 +33,7 @@ Resources:
                 - tag:GetResources
               Resource: '*'
       Tags:
-        SplunkId: !Join [ '-', [ 'aws-log-collector', !Ref IntegrationId, !Ref 'AWS::Region' ] ]
+        splunk-log-collector-id: !Join [ ':', [ !Ref IntegrationId, !Ref 'AWS::Region' ] ]
 
 Outputs:
   LambdaArn:
