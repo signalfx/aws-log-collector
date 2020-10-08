@@ -50,7 +50,6 @@ class LogCollector:
 
         def _get_fields():
             result = dict(metadata)
-            del result['index']
             del result['host']
             del result['source']
             del result['sourcetype']
@@ -60,7 +59,6 @@ class LogCollector:
         for item in logs["logEvents"]:
             timestamp_as_string = str(item['timestamp'])
             hec_item = {'event': item['message'],
-                        'index': metadata['index'],
                         'fields': fields,
                         'host': metadata['host'],
                         'source': metadata['source'],

@@ -45,7 +45,6 @@ class LogEnrichmentSuite(TestCase):
             "host": arn,
             "source": "lambda",
             "sourcetype": "aws:lambda",
-            "index": "main",
             **CUSTOM_TAGS
         }
         self.assertEqual(expected, actual)
@@ -74,7 +73,6 @@ class LogEnrichmentSuite(TestCase):
             "host": arn,
             "source": "lambda",
             "sourcetype": "aws:lambda",
-            "index": "main",
         }
         self.assertEqual(expected, actual)
 
@@ -101,7 +99,6 @@ class LogEnrichmentSuite(TestCase):
             "host": host,
             "source": "rds",
             "sourcetype": "aws:rds",
-            "index": "main",
         }
         self.assertEqual(expected, actual)
 
@@ -128,8 +125,6 @@ class LogEnrichmentSuite(TestCase):
             "host": host,
             "source": "rds",
             "sourcetype": "aws:rds",
-            "index": "main",
-
         }
         self.assertEqual(expected, actual)
 
@@ -156,8 +151,6 @@ class LogEnrichmentSuite(TestCase):
             "host": host,
             "source": "rds",
             "sourcetype": "aws:rds",
-            "index": "main",
-
         }
         self.assertEqual(expected, actual)
 
@@ -184,7 +177,6 @@ class LogEnrichmentSuite(TestCase):
             "host": eks_cluster_name,
             "source": "eks",
             "sourcetype": "aws:eks",
-            "index": "main",
         }
 
         self.assertEqual(expected, actual)
@@ -211,7 +203,6 @@ class LogEnrichmentSuite(TestCase):
             "host": arn,
             "source": "api-gateway",
             "sourcetype": "aws:api-gateway",
-            "index": "main",
             **CUSTOM_TAGS,
         }
 
