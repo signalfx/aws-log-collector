@@ -37,14 +37,13 @@ class LogEnricher:
 
         log_group = logs['logGroup']
         aws_namespace = _get_aws_namespace(log_group)
-        metadata = {'index': 'main',
-                      'logGroup': log_group,
-                      'logStream': logs['logStream'],
-                      'source': aws_namespace,
-                      'sourcetype': "aws:" + aws_namespace,
-                      'logForwarder': context.function_name.lower() + ":" + context.function_version,
-                      'region': self._parse_log_collector_function_arn(context)[0],
-                      'awsAccountId': logs['owner']}
+        metadata = {'logGroup': log_group,
+                    'logStream': logs['logStream'],
+                    'source': aws_namespace,
+                    'sourcetype': "aws:" + aws_namespace,
+                    'logForwarder': context.function_name.lower() + ":" + context.function_version,
+                    'region': self._parse_log_collector_function_arn(context)[0],
+                    'awsAccountId': logs['owner']}
         namespace_metadata = self._enricher_factory(metadata['source'])(context, log_group)
         metadata.update(namespace_metadata)
         return metadata

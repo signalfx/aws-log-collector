@@ -36,7 +36,6 @@ class LogCollectingSuite(TestCase):
 
         expected_event = {
             "event": log_message,
-            "index": "main",
             "fields": {
                 "logGroup": log_group,
                 "logStream": log_stream,
