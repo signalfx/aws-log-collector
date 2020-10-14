@@ -2,5 +2,7 @@
 *.txt
 samconfig.toml
 .aws-sam
+.out
+build.toml
 packaged.yaml
 serverless-bucket-policy-replaced.json

@@ -15,7 +15,7 @@ Resources:
     Type: AWS::Serverless::Function
     Description: Splunk AWS Log Collector
     Properties:
-      FunctionName: !Join [ '-', ['splunk-aws-logs-collector', !Ref IntegrationId] ]
+      FunctionName: !Sub 'splunk-aws-logs-collector-${IntegrationId}'
       Runtime: python3.7
       Timeout: 60
       CodeUri: ./src
@@ -33,7 +33,32 @@ Resources:
                 - tag:GetResources
               Resource: '*'
       Tags:
-        SplunkId: !Join [ '-', [ 'aws-log-collector', !Ref IntegrationId, !Ref 'AWS::Region' ] ]
+        splunk-log-collector-id: !Sub '${IntegrationId}:${AWS::Region}'
+
+  SplunkAwsLogsBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: BucketPermission
+    Properties:
+      BucketName: !Sub 'splunk-aws-logs-${AWS::Region}'
+      AccessControl: LogDeliveryWrite
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt SplunkAwsLogsCollector.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: 'prefix'
+                    Value: 'aws-logs'
+
+  BucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref SplunkAwsLogsCollector
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:s3:::splunk-aws-logs-${AWS::Region}'
 
 Outputs:
   LambdaArn:
