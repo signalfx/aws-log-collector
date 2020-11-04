@@ -7,6 +7,8 @@ Parameters:
     Type: String
   SplunkLogIngestUrl:
     Type: String
+  SplunkMetricIngestUrl:
+    Type: String
   IntegrationId:
     Type: String
 
@@ -23,7 +25,8 @@ Resources:
       Environment:
         Variables:
           SPLUNK_API_KEY: !Ref SplunkAPIKey
-          SPLUNK_URL: !Ref SplunkLogIngestUrl
+          SPLUNK_LOG_URL: !Ref SplunkLogIngestUrl
+          SPLUNK_METRIC_URL: !Ref SplunkMetricIngestUrl
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:

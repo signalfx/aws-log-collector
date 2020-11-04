@@ -2,16 +2,16 @@ import gzip
 import json
 import logging
 import time
-
 import requests
 from logger import log
+from metric import size_of_str
 
 
 class BatchClient(object):
 
     @staticmethod
-    def create(url, api_key, max_request_size_in_bytes, compression_level, max_retry=3):
-        client = RetryableClient.create(url, api_key, compression_level)
+    def create(url, api_key, max_request_size_in_bytes, compression_level, sfx_metrics, max_retry=3):
+        client = RetryableClient.create(url, api_key, compression_level, sfx_metrics)
         return BatchClient(client, max_request_size_in_bytes, max_retry)
 
     def __init__(self, client, max_request_size_in_bytes, max_retry):
@@ -66,8 +66,8 @@ class BatchClient(object):
 class RetryableClient(object):
 
     @staticmethod
-    def create(url, api_key, compression_level, max_retry=3):
-        client = HTTPClient(url, api_key, compression_level)
+    def create(url, api_key, compression_level, sfx_metrics, max_retry=3):
+        client = HTTPClient(url, api_key, compression_level, sfx_metrics)
         return RetryableClient(client, max_retry)
 
     def __init__(self, client, max_retry=3):
@@ -103,12 +103,13 @@ class RetryableException(Exception):
 
 class HTTPClient(object):
 
-    def __init__(self, host, api_key, compression_level, timeout=10):
+    def __init__(self, host, api_key, compression_level, sfx_metrics, timeout=20):
         self._url = host
+        self._headers = {"Content-type": "application/json", "Content-Encoding": "gzip", "X-SF-TOKEN": api_key}
+        self._compression_level = compression_level
+        self._sfx_metrics = sfx_metrics
         self._timeout = timeout
         self._session = None
-        self._compression_level = compression_level
-        self._headers = {"Content-type": "application/json", "Content-Encoding": "gzip", "X-SF-TOKEN": api_key}
 
     def _connect(self):
         self._session = requests.Session()
@@ -119,20 +120,27 @@ class HTTPClient(object):
         self._session = None
 
     def send(self, log_events):
-        data = self._combine_events(log_events)
-        data = self._compress_logs(data)
-
+        log_events_combined = self._combine_events(log_events)
+        data_compressed = self._compress_logs(log_events_combined)
+        self._sfx_metrics.counters(
+            ('sf.org.awsLogCollector.num.outputUncompressedBytes', size_of_str(log_events_combined)),
+            ('sf.org.awsLogCollector.num.outputCompressedBytes', len(data_compressed)),
+            ("sf.org.awsLogCollector.num.splunkLogRequests", 1)
+        )
         try:
-            log.debug(f"Data to be sent={data}")
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(f"Data to be sent={data_compressed}")
             log.info(f"Sending request to url={self._url}")
-            resp = self._session.post(self._url, data, timeout=self._timeout)
-        except Exception:
+            resp = self._session.post(self._url, data_compressed, timeout=self._timeout)
+        except Exception as ex:
             # network error
+            log.warn(f"Exception occurred during log sending {ex}")
             raise RetryableException()
         if resp.status_code >= 500:
+            log.warn(f"Server error (status={resp.status_code}, reason={resp.reason})")
             raise RetryableException()
         elif resp.status_code >= 400:
-            raise Exception(f"client error (status={resp.status_code}, reason={resp.reason})")
+            raise Exception(f"Client error (status={resp.status_code}, reason={resp.reason})")
 
         return
 
