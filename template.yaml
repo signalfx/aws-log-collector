@@ -35,6 +35,15 @@ Resources:
       Tags:
         splunk-log-collector-id: !Sub '${IntegrationId}:${AWS::Region}'
 
+  SplunkAwsLogsCollectorPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SplunkAwsLogsCollector
+      Action: 'lambda:InvokeFunction'
+      Principal: !Sub 'logs.${AWS::Region}.amazonaws.com'
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+
   SplunkAwsLogsBucket:
     Type: AWS::S3::Bucket
     DependsOn: BucketPermission
