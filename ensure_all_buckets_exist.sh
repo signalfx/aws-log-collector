@@ -26,7 +26,9 @@ done
 [[ -z "$PROFILE" ]] && { echo "Error: PROFILE not defined."; exit 1; }
 [[ -z "$BUCKET_NAME_PREFIX" ]] && { echo "Error: BUCKET_NAME_PREFIX not defined."; exit 1; }
 
-for region in us-east-2 us-east-1 #eu-central-1 us-west-1 us-west-2 ap-south-1 ap-northeast-1 ap-northeast-2 ap-southeast-1 ap-southeast-2 ca-central-1 eu-west-1 eu-west-2 eu-west-3 eu-north-1 sa-east-1
+#the list has the order from here https://docs.aws.amazon.com/general/latest/gr/rande.html
+#with exception of ap-northeast-3 (Osaka Local) and China regions
+for region in us-east-2 us-east-1 us-west-1 us-west-2 af-south-1 ap-east-1 ap-south-1 ap-northeast-2 ap-southeast-1 ap-southeast-2 ap-northeast-1 ca-central-1 eu-central-1 eu-west-1 eu-west-2 eu-south-1 eu-west-3 eu-north-1 me-south-1 sa-east-1
 do
   BUCKET_NAME=${BUCKET_NAME_PREFIX}-$region
   echo "Making sure S3 bucket with artifacts exists..."

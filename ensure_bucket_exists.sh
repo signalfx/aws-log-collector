@@ -45,7 +45,7 @@ then
   echo "Attaching appropriate policy to the bucket..."
   sed "s/<your-bucket-name>/${BUCKET_NAME}/g" serverless-bucket-policy.json > serverless-bucket-policy-replaced.json
   cat serverless-bucket-policy-replaced.json
-  aws s3api put-bucket-policy --profile ${PROFILE} --bucket ${BUCKET_NAME} --policy file://serverless-bucket-policy-replaced.json
+  aws s3api put-bucket-policy --profile ${PROFILE} --region ${REGION} --bucket ${BUCKET_NAME} --policy file://serverless-bucket-policy-replaced.json
 
   if [[ $? -ne 0 ]]
   then

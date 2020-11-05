@@ -8,6 +8,9 @@ while [[ "$1" != "" ]]; do
         -p | --profile )        shift
                                 PROFILE=$1
                                 ;;
+        -r | --region )         shift
+                                REGION=$1
+                                ;;
         * )                     echo "Bucket name and profile are required."
                                 exit 1
     esac
@@ -39,7 +42,8 @@ then
 
   echo "Packaging template, uploading code to s3..."
   #sam package creates packaged.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
-  RAW=`sam package --profile ${PROFILE} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-prefix aws-log-collector --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
+  #turns out region parameter is needed when using opt-in regions, due to a bug in s3api (not documented)
+  RAW=`sam package --profile ${PROFILE} --region ${REGION} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-prefix aws-log-collector --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
 
   if [[ $? -ne 0 ]]
     then
@@ -52,7 +56,7 @@ then
   echo "File $EXTRACTED with lambda code uploaded."
 
   echo "Granting public access to $EXTRACTED ..."
-  aws s3api put-object-acl --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/${EXTRACTED}
+  aws s3api put-object-acl --profile ${PROFILE} --region ${REGION} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/${EXTRACTED}
   if [[ $? -ne 0 ]]
     then
       echo "Could not grant public read to the uploaded artifact $EXTRACTED. Stopping the execution."
@@ -60,7 +64,7 @@ then
   fi
 
   echo "Uploading packaged.yaml to bucket $BUCKET_NAME..."
-  aws s3api put-object --profile ${PROFILE} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged.yaml --body packaged.yaml
+  aws s3api put-object --profile ${PROFILE} --region ${REGION} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged.yaml --body packaged.yaml
 
   if [[ $? -ne 0 ]]
     then
