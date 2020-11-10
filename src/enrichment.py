@@ -21,9 +21,9 @@ class LogEnricher:
     def __init__(self, tag_cache):
         self._tag_cache = tag_cache
 
-    def get_matadata(self, raw_logs, context):
+    def get_matadata(self, raw_logs, context, sfx_metrics):
         metadata = self._basic_enrichment(raw_logs, context)
-        tags = self._get_tags(metadata)
+        tags = self._get_tags(metadata, sfx_metrics)
         return self._merge(metadata, tags)
 
     def _basic_enrichment(self, logs, context):
@@ -108,10 +108,10 @@ class LogEnricher:
         }
         return enrichers.get(source, default_enricher)
 
-    def _get_tags(self, enrichment):
+    def _get_tags(self, enrichment, sfx_metrics):
         arn = enrichment.get('arn')
         if arn:
-            return self._tag_cache.get(arn)
+            return self._tag_cache.get(arn, sfx_metrics)
 
     @staticmethod
     def _merge(enrichment, tags):
@@ -138,20 +138,21 @@ class TagsCache(object):
         self.cache_ttl_seconds = cache_ttl_seconds
         self.last_fetch_time = 0
 
-    def _refresh(self):
+    def _refresh(self, sfx_metrics):
         self.last_fetch_time = time.time()
-        self.tags_by_arn = self.build_cache()
+        self.tags_by_arn = self._build_cache()
+        sfx_metrics.inc_counter('sf.org.awsLogCollector.num.tagCacheRefresh')
 
     def _is_expired(self):
         return time.time() > self.last_fetch_time + self.cache_ttl_seconds
 
-    def get(self, resource_arn):
+    def get(self, resource_arn, sfx_metrics):
         if self._is_expired():
-            self._refresh()
+            self._refresh(sfx_metrics)
 
         return self.tags_by_arn.get(resource_arn.lower(), None)
 
-    def build_cache(self):
+    def _build_cache(self):
         tags_by_arn_cache = {}
         get_resources_paginator = self.resource_tagging_client.get_paginator("get_resources")
 

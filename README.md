@@ -20,5 +20,5 @@ The script will release to all regions available in the target AWS account (R&D 
 ## Quick link to the template.
 
 The quick link format is:
-`https://<region>.console.aws.amazon.com/cloudformation/home?region=<region>#/stacks/create/review?templateURL=https://<templateUrl>/packaged.yaml&param_IntegrationId=<integrationId>&param_SplunkAPIKey=<accessKey>&param_SplunkLogIngestUrl=<ingestUrl>`
+`https://<region>.console.aws.amazon.com/cloudformation/home?region=<region>#/stacks/create/review?templateURL=https://<templateUrl>/packaged.yaml&param_IntegrationId=<integrationId>&param_SplunkAPIKey=<accessKey>&param_SplunkLogIngestUrl=<logIngestUrl>&param_SplunkMetricIngestUrl=<metricIngestUrl>`
 

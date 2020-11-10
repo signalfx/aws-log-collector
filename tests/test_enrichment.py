@@ -19,6 +19,7 @@ class LogEnrichmentSuite(TestCase):
 
     def setUp(self) -> None:
         self.tag_cache_mock = Mock()
+        self.sfx_metrics = Mock()
         self.log_enricher = LogEnricher(self.tag_cache_mock)
 
     def test_lambda_enrichment(self):
@@ -27,7 +28,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_lambda_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -55,7 +56,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_lambda_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -82,7 +83,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_rds_postgres_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -108,7 +109,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_rds_mysql_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -134,7 +135,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_rds_aurora_cluster_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -160,7 +161,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_eks_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -187,7 +188,7 @@ class LogEnrichmentSuite(TestCase):
         event = read_from_file('sample_api_gateway_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context())
+        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         arn = "arn:aws:apigateway:us-east-1::/restapis/kgiqlx3nok/stages/prod"

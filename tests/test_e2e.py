@@ -2,8 +2,9 @@ import base64
 import gzip
 import json
 import unittest
+import signalfx
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from client import BatchClient
 from enrichment import TagsCache
@@ -12,6 +13,7 @@ from test_enrichment import lambda_context, read_from_file, CUSTOM_TAGS, FORWARD
     FORWARDER_FUNCTION_NAME, FORWARDER_FUNCTION_VERSION, AWS_REGION, AWS_ACCOUNT_ID
 
 
+@patch.object(signalfx.SignalFx, "ingest")
 @patch.object(BatchClient, "send")
 @patch.object(TagsCache, "get")
 class LogCollectingSuite(TestCase):
@@ -19,7 +21,7 @@ class LogCollectingSuite(TestCase):
     def setUp(self) -> None:
         self.log_forwarder = LogCollector()
 
-    def test_lambda(self, tags_cache_get_mock, send_method_mock):
+    def test_lambda(self, tags_cache_get_mock, send_method_mock, _):
         # GIVEN
         tags_cache_get_mock.return_value = CUSTOM_TAGS
         event, cw_event = self._read_aws_log_event_from_file('sample_lambda_log.json')
