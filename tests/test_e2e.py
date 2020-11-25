@@ -4,10 +4,10 @@ import json
 import unittest
 import signalfx
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from client import BatchClient
-from enrichment import TagsCache
+from enrichers.cloudwatch import TagsCache
 from function import LogCollector
 from test_enrichment import lambda_context, read_from_file, CUSTOM_TAGS, FORWARDER_FUNCTION_ARN_PREFIX, \
     FORWARDER_FUNCTION_NAME, FORWARDER_FUNCTION_VERSION, AWS_REGION, AWS_ACCOUNT_ID

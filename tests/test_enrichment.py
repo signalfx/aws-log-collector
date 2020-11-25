@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 from aws_lambda_context import LambdaContext
 
-from enrichment import LogEnricher
+from enrichers.cloudwatch import CloudWatchLogsEnricher
 
 CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
 AWS_REGION = "us-east-1"
@@ -20,7 +20,7 @@ class LogEnrichmentSuite(TestCase):
     def setUp(self) -> None:
         self.tag_cache_mock = Mock()
         self.sfx_metrics = Mock()
-        self.log_enricher = LogEnricher(self.tag_cache_mock)
+        self.log_enricher = CloudWatchLogsEnricher(self.tag_cache_mock)
 
     def test_lambda_enrichment(self):
         # GIVEN
