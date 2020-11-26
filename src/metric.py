@@ -1,6 +1,7 @@
 import json
-import time
+
 import signalfx
+import time
 
 
 def size_of_str(string):

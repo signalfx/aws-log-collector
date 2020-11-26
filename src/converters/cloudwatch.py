@@ -15,7 +15,7 @@ class CloudWatchLogsConverter(Converter):
 
     def supports(self, log_event):
         try:
-            data = log_event['awslogs']['data']
+            data = log_event["awslogs"]["data"]
             return len(data) > 0
         except KeyError:
             return False
@@ -24,12 +24,11 @@ class CloudWatchLogsConverter(Converter):
         aws_logs_base64 = log_event["awslogs"]["data"]
         aws_logs_compressed = base64.b64decode(aws_logs_base64)
         aws_logs = self._read_logs(aws_logs_compressed)
-        metadata = self._logs_enricher.get_matadata(aws_logs, context, sfx_metrics)
-        sfx_metrics.namespace(metadata['source'])
+        metadata = self._logs_enricher.get_metadata(aws_logs, context, sfx_metrics)
+        sfx_metrics.namespace(metadata["source"])
         self._send_input_metrics(sfx_metrics, aws_logs_base64, aws_logs_compressed, aws_logs)
 
-        hec_logs = list(self._enriched_logs_to_hec(aws_logs, metadata))
-        return hec_logs
+        return self._enriched_logs_to_hec(aws_logs, metadata)
 
     @staticmethod
     def _read_logs(aws_logs):
@@ -42,19 +41,19 @@ class CloudWatchLogsConverter(Converter):
 
         def _get_fields():
             result = dict(metadata)
-            del result['host']
-            del result['source']
-            del result['sourcetype']
+            del result["host"]
+            del result["source"]
+            del result["sourcetype"]
             return result
 
         fields = _get_fields()
         for item in logs["logEvents"]:
             timestamp_as_string = str(item['timestamp'])
-            hec_item = {'event': item['message'],
-                        'fields': fields,
-                        'host': metadata['host'],
-                        'source': metadata['source'],
-                        'sourcetype': metadata['sourcetype'],
+            hec_item = {"event": item["message"],
+                        "fields": fields,
+                        "host": metadata["host"],
+                        "source": metadata["source"],
+                        "sourcetype": metadata["sourcetype"],
                         "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
                         }
 
@@ -63,7 +62,7 @@ class CloudWatchLogsConverter(Converter):
     @staticmethod
     def _send_input_metrics(sfx_metrics, aws_logs_base64, aws_logs_compressed, logs):
         sfx_metrics.counters(
-                ('sf.org.awsLogCollector.num.inputBase64Bytes', len(aws_logs_base64)),
-                ('sf.org.awsLogCollector.num.inputCompressedBytes', len(aws_logs_compressed)),
-                ('sf.org.awsLogCollector.num.inputUncompressedBytes', size_of_json(logs))
+                ("sf.org.awsLogCollector.num.inputBase64Bytes", len(aws_logs_base64)),
+                ("sf.org.awsLogCollector.num.inputCompressedBytes", len(aws_logs_compressed)),
+                ("sf.org.awsLogCollector.num.inputUncompressedBytes", size_of_json(logs))
         )

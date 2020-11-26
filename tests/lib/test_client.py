@@ -1,7 +1,7 @@
 from unittest.case import TestCase
 from unittest.mock import MagicMock, call, Mock
 
-from client import RetryableException, RetryableClient, BatchClient
+from lib.client import RetryableException, RetryableClient, BatchClient
 
 
 class RetryClientSuite(TestCase):

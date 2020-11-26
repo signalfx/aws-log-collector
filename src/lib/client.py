@@ -1,8 +1,10 @@
 import gzip
 import json
 import logging
-import time
+
 import requests
+import time
+
 from logger import log
 from metric import size_of_str
 

@@ -24,7 +24,7 @@ class TagsCache(object):
     def _refresh(self, sfx_metrics):
         self.last_fetch_time = time.time()
         self.tags_by_arn = self._build_cache()
-        sfx_metrics.inc_counter('sf.org.awsLogCollector.num.tagCacheRefresh')
+        sfx_metrics.inc_counter("sf.org.awsLogCollector.num.tagCacheRefresh")
 
     def _build_cache(self):
         tags_by_arn_cache = {}

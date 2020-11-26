@@ -2,12 +2,13 @@ import json
 import logging
 import os
 
-from client import BatchClient
 from converters.cloudwatch import CloudWatchLogsConverter
 from converters.s3 import S3LogsConverter
 from enrichers.cloudwatch import CloudWatchLogsEnricher
 from enrichers.s3 import S3LogsEnricher
-from enrichers.tags_cache import TagsCache
+from lib.client import BatchClient
+from lib.s3_service import S3Service
+from lib.tags_cache import TagsCache
 from logger import log
 from metric import SfxMetrics
 
@@ -24,7 +25,7 @@ class LogCollector:
         tags_cache = TagsCache(TAGS_CACHE_TTL_SECONDS)
         self._converters = [
             CloudWatchLogsConverter(CloudWatchLogsEnricher(tags_cache)),
-            S3LogsConverter(S3LogsEnricher(tags_cache))
+            S3LogsConverter(S3LogsEnricher(tags_cache), S3Service())
         ]
 
     def forward_log(self, log_event, context):

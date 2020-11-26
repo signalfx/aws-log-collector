@@ -1,21 +1,15 @@
-import json
 import unittest
 from unittest import TestCase
 from unittest.mock import Mock
 
-from aws_lambda_context import LambdaContext
-
 from enrichers.cloudwatch import CloudWatchLogsEnricher
+from utils import lambda_context, read_json_file, FORWARDER_FUNCTION_ARN_PREFIX, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
+    FORWARDER_FUNCTION_VERSION
 
 CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
-AWS_REGION = "us-east-1"
-AWS_ACCOUNT_ID = "134183635603"
-FORWARDER_FUNCTION_ARN_PREFIX = f"arn:aws:lambda:{AWS_REGION}:{AWS_ACCOUNT_ID}:function:"
-FORWARDER_FUNCTION_NAME = 'splunk_aws_log_forwarder'
-FORWARDER_FUNCTION_VERSION = '1.0.1'
 
 
-class LogEnrichmentSuite(TestCase):
+class CloudWatchEnrichmentSuite(TestCase):
 
     def setUp(self) -> None:
         self.tag_cache_mock = Mock()
@@ -25,10 +19,10 @@ class LogEnrichmentSuite(TestCase):
     def test_lambda_enrichment(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_lambda_log.json')
+        event = read_json_file('../data/sample_lambda_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -53,10 +47,10 @@ class LogEnrichmentSuite(TestCase):
     def test_lambda_enrichment_no_tags(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = None
-        event = read_from_file('sample_lambda_log.json')
+        event = read_json_file('../data/sample_lambda_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -80,10 +74,10 @@ class LogEnrichmentSuite(TestCase):
     def test_rds_postgres(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_rds_postgres_log.json')
+        event = read_json_file('../data/sample_rds_postgres_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -106,10 +100,10 @@ class LogEnrichmentSuite(TestCase):
     def test_rds_mysql(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_rds_mysql_log.json')
+        event = read_json_file('../data/sample_rds_mysql_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -132,10 +126,10 @@ class LogEnrichmentSuite(TestCase):
     def test_rds_aurora_cluster(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_rds_aurora_cluster_log.json')
+        event = read_json_file('../data/sample_rds_aurora_cluster_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -158,10 +152,10 @@ class LogEnrichmentSuite(TestCase):
     def test_eks(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_eks_log.json')
+        event = read_json_file('../data/sample_eks_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         log_group = event['logGroup']
@@ -185,10 +179,10 @@ class LogEnrichmentSuite(TestCase):
     def test_api_gateway(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_from_file('sample_api_gateway_log.json')
+        event = read_json_file('../data/sample_api_gateway_log.json')
 
         # WHEN
-        actual = self.log_enricher.get_matadata(event, lambda_context(), self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
 
         # THEN
         arn = "arn:aws:apigateway:us-east-1::/restapis/kgiqlx3nok/stages/prod"
@@ -231,19 +225,6 @@ class LogEnrichmentSuite(TestCase):
         # THEN
         self.assertEqual(AWS_REGION, region)
         self.assertEqual(AWS_ACCOUNT_ID, account_id)
-
-
-def read_from_file(file_name):
-    with open(file_name, 'r') as file:
-        return json.loads(file.read())
-
-
-def lambda_context():
-    context = LambdaContext()
-    context.function_name = FORWARDER_FUNCTION_NAME
-    context.function_version = FORWARDER_FUNCTION_VERSION
-    context.invoked_function_arn = FORWARDER_FUNCTION_ARN_PREFIX + FORWARDER_FUNCTION_NAME
-    return context
 
 
 if __name__ == "__main__":
