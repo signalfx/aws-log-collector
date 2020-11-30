@@ -34,7 +34,13 @@ Resources:
               Effect: Allow
               Action:
                 - tag:GetResources
-              Resource: '*'
+              Resource: "*"
+        - Statement:
+            - Sid: GetS3LogObjects
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: "*"
       Tags:
         splunk-log-collector-id: !Sub '${IntegrationId}:${AWS::Region}'
 

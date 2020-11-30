@@ -49,6 +49,10 @@ class LogCollector:
 
     @staticmethod
     def _send(logs, sfx_metrics):
+        log.debug(f"About to send {len(logs)} log item(s)...")
+        for item in logs:
+            log.debug(item)
+
         with BatchClient.create(SPLUNK_LOG_URL, SPLUNK_API_KEY, MAX_REQUEST_SIZE_IN_BYTES, COMPRESSION_LEVEL,
                                 sfx_metrics) as client:
             client.send(logs)

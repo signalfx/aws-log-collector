@@ -48,10 +48,10 @@ class S3LogsConverter(Converter):
     def _parse_line(namespace, line):
         if namespace == "s3":
             parsed = parse_s3_access_log_line(line)
+        else:
+            parsed = None
 
-        if parsed is None:
-            parsed = {}
-        return {"raw_log_line": line, **parsed}
+        return {"raw_log_line": line} if parsed is None else {"raw_log_line": line, **parsed}
 
     @staticmethod
     def _to_hec(namespace, parsed_line, metadata):
