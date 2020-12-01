@@ -3,6 +3,8 @@ import time
 
 from logger import log
 
+SUPPORTED_NAMESPACES = ["lambda", "rds", "eks", "apigateway", "s3"]
+
 
 class TagsCache(object):
     resource_tagging_client = boto3.client("resourcegroupstaggingapi")
@@ -32,7 +34,7 @@ class TagsCache(object):
 
         try:
             for page in get_resources_paginator.paginate(
-                    ResourceTypeFilters=["lambda", "rds", "eks", "apigateway", "s3"], ResourcesPerPage=100
+                    ResourceTypeFilters=SUPPORTED_NAMESPACES, ResourcesPerPage=100
             ):
                 page_tags_by_arn = self._parse_get_resources_response_for_tags_by_arn(page)
                 tags_by_arn_cache.update(page_tags_by_arn)

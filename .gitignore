@@ -1,5 +1,4 @@
 .idea
-*.txt
 samconfig.toml
 .aws-sam
 .out

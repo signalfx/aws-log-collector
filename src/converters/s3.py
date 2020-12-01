@@ -43,6 +43,7 @@ class S3LogsConverter(Converter):
                 self._send_input_metrics(sfx_metrics, namespace, bytes_received)
             except Exception as e:
                 log.error(f"Failed to process s3 log file: s3://{bucket}/{key} error: {e}")
+                sfx_metrics.inc_counter('sf.org.awsLogCollector.num.s3.errors')
 
     @staticmethod
     def _parse_line(namespace, line):
