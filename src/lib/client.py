@@ -136,10 +136,10 @@ class HTTPClient(object):
             resp = self._session.post(self._url, data_compressed, timeout=self._timeout)
         except Exception as ex:
             # network error
-            log.warn(f"Exception occurred during log sending {ex}")
+            log.warning(f"Exception occurred during log sending {ex}")
             raise RetryableException()
         if resp.status_code >= 500:
-            log.warn(f"Server error (status={resp.status_code}, reason={resp.reason})")
+            log.warning(f"Server error (status={resp.status_code}, reason={resp.reason})")
             raise RetryableException()
         elif resp.status_code >= 400:
             raise Exception(f"Client error (status={resp.status_code}, reason={resp.reason})")

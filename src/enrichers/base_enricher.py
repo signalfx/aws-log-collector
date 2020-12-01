@@ -6,7 +6,7 @@ class BaseEnricher:
     def __init__(self, tags_cache):
         self._tags_cache = tags_cache
 
-    def get_common_metadata(self, context):
+    def get_context_metadata(self, context):
         region, aws_account_id = self._parse_log_collector_function_arn(context)
         return {
             "logForwarder": self._get_log_forwarder(context),

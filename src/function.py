@@ -11,6 +11,10 @@ from lib.s3_service import S3Service
 from lib.tags_cache import TagsCache
 from logger import log
 from metric import SfxMetrics
+from parsers.alb import ApplicationELBParser
+from parsers.cloudfront import CloudFrontParser
+from parsers.nlb import NetworkELBParser
+from parsers.s3 import S3Parser
 
 SPLUNK_LOG_URL = os.getenv("SPLUNK_LOG_URL", default="<unknown-url>")
 SPLUNK_METRIC_URL = os.getenv("SPLUNK_METRIC_URL", default="<unknown-url>")
@@ -23,9 +27,11 @@ TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60
 class LogCollector:
     def __init__(self):
         tags_cache = TagsCache(TAGS_CACHE_TTL_SECONDS)
+        s3_parsers = [S3Parser(), ApplicationELBParser(), NetworkELBParser(),
+                      CloudFrontParser()]
         self._converters = [
             CloudWatchLogsConverter(CloudWatchLogsEnricher(tags_cache)),
-            S3LogsConverter(S3LogsEnricher(tags_cache), S3Service())
+            S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers)
         ]
 
     def forward_log(self, log_event, context):
@@ -41,7 +47,7 @@ class LogCollector:
                         self._send(hec_logs, sfx_metrics)
                         break
                 else:
-                    log.warn("Received unsupported log event: " + log_event)
+                    log.warning("Received unsupported log event: " + log_event)
                     sfx_metrics.inc_counter('sf.org.awsLogCollector.num.skipped_log_events')
             except Exception as ex:
                 log.error(f"Exception occurred: {ex}")

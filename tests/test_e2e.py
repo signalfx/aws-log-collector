@@ -25,7 +25,7 @@ class LogCollectingSuite(TestCase):
     def setUp(self) -> None:
         self.log_forwarder = LogCollector()
 
-    def test_lambda(self, tags_cache_get_mock, send_method_mock, _, __):
+    def test_cloudwatch(self, tags_cache_get_mock, send_method_mock, _, __):
         # GIVEN
         tags_cache_get_mock.return_value = CUSTOM_TAGS
         event, cw_event = self._read_aws_log_event_from_file('data/sample_lambda_log.json')
@@ -45,7 +45,7 @@ class LogCollectingSuite(TestCase):
             "fields": {
                 "logGroup": log_group,
                 "logStream": log_stream,
-                "logForwarder": FORWARDER_FUNCTION_NAME+":"+FORWARDER_FUNCTION_VERSION,
+                "logForwarder": FORWARDER_FUNCTION_NAME + ":" + FORWARDER_FUNCTION_VERSION,
                 "region": AWS_REGION,
                 "awsAccountId": AWS_ACCOUNT_ID,
                 "arn": arn,
@@ -60,21 +60,64 @@ class LogCollectingSuite(TestCase):
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
 
-    def test_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
-        # GIVEN
-        bucket_arn = "arn:aws:s3:::integrations-team"
-        bucket_tags = {"bucket-tag-1": 1, "bucket-tag-2": "abc"}
-        object_tags = {"object-tag-1": 10, "object-tag-2": "def"}
-        tags_cache_get_mock.side_effect = lambda arn, _: bucket_tags if arn == bucket_arn else object_tags
+    def test_s3_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "service": "s3",
+            "arn_to_tags": {
+                "arn:aws:s3:::integrations-team":
+                    {"bucket-tag-1": 1, "bucket-tag-2": "abc"},
+                "arn:aws:s3:::integrations-team/WhatsApp Image 2020-07-05 at 18.34.43.jpeg":
+                    {"object-tag-1": 10, "object-tag-2": "def"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
 
-        s3_service_read_lines_mock.return_value = read_text_file("data/sample_s3_access_log.txt")
-        s3_event = read_json_file("data/sample_s3_log_event.json")
+    def test_s3_alb(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "service": "alb",
+            "arn_to_tags": {
+                "arn:aws:elasticloadbalancing:us-east-2:840385940912:loadbalancer/app/my-loadbalancer/50dc6c495c0c9188":
+                    {"elb-a": 1, "elb-b": "one"},
+                "arn:aws:elasticloadbalancing:us-east-2:840385940912:targetgroup/my-targets/73e2d6bc24d8a067":
+                    {"tg-a": 10, "tg-b": "ten"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def test_s3_nlb(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "service": "nlb",
+            "arn_to_tags": {
+                "arn:aws:elasticloadbalancing:us-east-2:840385940912:loadbalancer/net/my-network-loadbalancer/c6e77e28c25b2234":
+                    {"lb-a": 1, "lb-b": "two"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def test_s3_cloudfront(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "service": "cloudfront",
+            "arn_to_tags": {
+                "arn:aws:cloudfront::134183635603:distribution/EMLARXS9EXAMPLE":
+                    {"dist-a": 1, "dist-b": "two"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def _test_s3_logs_handling(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario):
+        # GIVEN
+        service = scenario["service"]
+        arn_to_tags = scenario["arn_to_tags"]
+        tags_cache_get_mock.side_effect = lambda arn, _: arn_to_tags[arn] if arn in arn_to_tags else None
+
+        s3_event = read_json_file(f"data/sample_{service}_log_event.json")
+        s3_service_read_lines_mock.return_value = read_text_file(f"data/sample_{service}_access_log.txt")
 
         # WHEN
         self.log_forwarder.forward_log(s3_event, lambda_context())
 
         # THEN
-        expected_hec_events = read_json_file("data/expected_s3_access_log_hec_items.json")
+        expected_hec_events = read_json_file(f"data/expected_{service}_hec_items.json")
         actual_hec_events = self._parse_hec_events_to_json(send_method_mock.call_args)
         self.assertEqual(expected_hec_events, actual_hec_events)
 
@@ -96,4 +139,3 @@ class LogCollectingSuite(TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
