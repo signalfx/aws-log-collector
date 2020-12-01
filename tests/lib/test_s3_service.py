@@ -9,10 +9,6 @@ class S3ServiceSuite(TestCase):
     def setUp(self) -> None:
         self.s3_service = S3Service()
 
-    def test_get_aws_namespace(self):
-        self.assertEqual("s3", self.s3_service.get_aws_namespace("logs/ABCDEF12345/s3/2020-11-25-12-27-23-EC390CD533CD5C56"))
-        self.assertEqual(None, self.s3_service.get_aws_namespace("2020-11-25-12-27-23-EC390CD533CD5C56.log"))
-
     @unittest.skip("uses real bucket/key, must be run with proper AWS profile/permissions")
     def test_read_lines(self):
         # note that the following bucket and/or key may not exist anymore

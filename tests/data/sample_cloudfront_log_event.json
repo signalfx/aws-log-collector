@@ -1,0 +1,38 @@
+{
+    "Records": [
+        {
+            "eventVersion": "2.1",
+            "eventSource": "aws:s3",
+            "awsRegion": "eu-central-1",
+            "eventTime": "2020-11-25T12:27:17.629Z",
+            "eventName": "ObjectCreated:Put",
+            "userIdentity": {
+                "principalId": "A2HRK4T7OWQKNJ"
+            },
+            "requestParameters": {
+                "sourceIPAddress": "172.16.173.124"
+            },
+            "responseElements": {
+                "x-amz-request-id": "99F25D66BB5A2BA1",
+                "x-amz-id-2": "nTu69U8nx+bBEoOwG0i5tHmccG8yH8+0XS/7DJP7skAPKBc9qtxT7TI+HpPBYhnzZqlm3RYcdn4mfeEbDOGYq3CRD/20cyLg"
+            },
+            "s3": {
+                "s3SchemaVersion": "1.0",
+                "configurationId": "20ae1e65-8b2a-4b2c-a576-5bdac6de40f5",
+                "bucket": {
+                    "name": "integrations-team-logs",
+                    "ownerIdentity": {
+                        "principalId": "A1CPYENC4J30WF"
+                    },
+                    "arn": "arn:aws:s3:::integrations-team-logs"
+                },
+                "object": {
+                    "key": "example-prefix/EMLARXS9EXAMPLE.2019-11-14-20.RT4KCN4SGK9.gz",
+                    "size": 4459,
+                    "eTag": "0c47701cb7071fb034d0afd3e04a4ec5",
+                    "sequencer": "005FBE4DAB3BDFFC25"
+                }
+            }
+        }
+    ]
+}

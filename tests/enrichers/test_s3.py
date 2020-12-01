@@ -21,10 +21,13 @@ class S3EnrichmentSuite(TestCase):
     def test_s3_enrichment_with_bucket_and_object_tags(self):
         # GIVEN
         self.tag_cache_mock.get.side_effect = lambda arn, _: OBJECT_TAGS if arn.endswith(OBJECT_KEY) else BUCKET_TAGS
-        parsed_line = {"bucket": BUCKET, "key": OBJECT_KEY}
+        arns = [
+            ("bucketArn", f"arn:aws:s3:::{BUCKET}"),
+            ("objectArn", f"arn:aws:s3:::{BUCKET}/{OBJECT_KEY}"),
+        ]
 
         # WHEN
-        actual = self.log_enricher.get_metadata("s3", parsed_line, COMMON_METADATA, self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
 
         # THEN
         expected = {
@@ -39,10 +42,10 @@ class S3EnrichmentSuite(TestCase):
     def test_s3_enrichment_without_object_key(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = BUCKET_TAGS
-        parsed_line = {"bucket": BUCKET}
+        arns = [("bucketArn", f"arn:aws:s3:::{BUCKET}")]
 
         # WHEN
-        actual = self.log_enricher.get_metadata("s3", parsed_line, COMMON_METADATA, self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
 
         # THEN
         expected = {
@@ -55,10 +58,13 @@ class S3EnrichmentSuite(TestCase):
     def test_s3_enrichment_without_tags(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = None
-        parsed_line = {"bucket": BUCKET, "key": OBJECT_KEY}
+        arns = [
+            ("bucketArn", f"arn:aws:s3:::{BUCKET}"),
+            ("objectArn", f"arn:aws:s3:::{BUCKET}/{OBJECT_KEY}"),
+        ]
 
         # WHEN
-        actual = self.log_enricher.get_metadata("s3", parsed_line, COMMON_METADATA, self.sfx_metrics)
+        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
 
         # THEN
         expected = {

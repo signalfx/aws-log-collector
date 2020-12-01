@@ -14,8 +14,8 @@ class BaseEnrichmentSuite(TestCase):
         self.sfx_metrics = Mock()
         self.log_enricher = BaseEnricher(self.tag_cache_mock)
 
-    def test_common_metadata(self):
-        actual = self.log_enricher.get_common_metadata(lambda_context())
+    def test_context_metadata(self):
+        actual = self.log_enricher.get_context_metadata(lambda_context())
 
         expected = {
             "logForwarder": f"{FORWARDER_FUNCTION_NAME}:{FORWARDER_FUNCTION_VERSION}",

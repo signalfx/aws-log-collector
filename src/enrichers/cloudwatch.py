@@ -27,7 +27,7 @@ class CloudWatchLogsEnricher(BaseEnricher):
 
         log_group = logs['logGroup']
         aws_namespace = _get_aws_namespace(log_group)
-        common_metadata = self.get_common_metadata(context)
+        common_metadata = self.get_context_metadata(context)
         metadata = {'logGroup': log_group,
                     'logStream': logs['logStream'],
                     'source': aws_namespace,
