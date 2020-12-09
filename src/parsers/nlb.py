@@ -47,7 +47,7 @@ class NetworkELBParser(Parser):
     def try_parse(self, metadata, record):
         fields = dict(zip(FIELD_NAMES, record))
 
-        hec_time = self.iso_time_to_hec_time(fields["time"]) if "time" in fields else None
+        hec_time = self._iso_time_to_hec_time(fields["time"]) if "time" in fields else None
         arns = self._get_arns(metadata, fields)
         return ParsedLine(hec_time, fields, arns)
 
@@ -57,6 +57,6 @@ class NetworkELBParser(Parser):
         if fields.get("elb", "-") != "-":  # AWS uses "-" for missing/null values
             region = metadata["region"]
             account_id = metadata["awsAccountId"]
-            elb = fields['elb']
+            elb = fields["elb"]
             arns.append(("elbArn", f"arn:aws:elasticloadbalancing:{region}:{account_id}:loadbalancer/{elb}"))
         return arns

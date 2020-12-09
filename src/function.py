@@ -14,6 +14,9 @@ from metric import SfxMetrics
 from parsers.alb import ApplicationELBParser
 from parsers.cloudfront import CloudFrontParser
 from parsers.nlb import NetworkELBParser
+from parsers.redshift_connectionlog import RedshiftConnectionLogParser
+from parsers.redshift_useractivity import RedshiftUserActivityLogParser
+from parsers.redshift_userlog import RedshiftUserLogParser
 from parsers.s3 import S3Parser
 
 SPLUNK_LOG_URL = os.getenv("SPLUNK_LOG_URL", default="<unknown-url>")
@@ -27,8 +30,15 @@ TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60
 class LogCollector:
     def __init__(self):
         tags_cache = TagsCache(TAGS_CACHE_TTL_SECONDS)
-        s3_parsers = [S3Parser(), ApplicationELBParser(), NetworkELBParser(),
-                      CloudFrontParser()]
+        s3_parsers = [
+            S3Parser(),
+            ApplicationELBParser(),
+            NetworkELBParser(),
+            CloudFrontParser(),
+            RedshiftUserLogParser(),
+            RedshiftUserActivityLogParser(),
+            RedshiftConnectionLogParser()
+        ]
         self._converters = [
             CloudWatchLogsConverter(CloudWatchLogsEnricher(tags_cache)),
             S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers)

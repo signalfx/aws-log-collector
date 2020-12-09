@@ -1,0 +1,77 @@
+[
+    {
+        "event": "'2020-12-08T22:00:03Z UTC [ db=dev user=rdsdb pid=685 userid=1 xid=245578 ]' LOG: SET statement_timeout TO 120000",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "useractivitylog",
+            "tagA": "a",
+            "tagB": "b"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607464803.0
+    },
+    {
+        "event": "'2020-12-08T22:00:03Z UTC [ db=dev user=rdsdb pid=685 userid=1 xid=245579 ]' LOG: select count(distinct id) from pg_catalog.stv_tbl_perm where temp = false and db_id > 1 and id not in (select oid from pg_class where relname like 'redshift_auto_health_check_%' and relnamespace in (select oid from pg_namespace where nspname='pg_internal'))",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "useractivitylog",
+            "tagA": "a",
+            "tagB": "b"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607464803.0
+    },
+    {
+        "event": "'2020-12-08T22:01:55Z UTC [ db=dev user=rdsdb pid=23170 userid=1 xid=245636 ]' LOG: SELECT  ss.node as node,\n        bc.temporary as temporary,\n        bc.on_disk as on_disk,\n        SUM(bc.size) as size\nFROM    stv_slices as ss\nJOIN    (\n        SELECT  slice,\n                on_disk,\n                temporary,\n                count(*) as size\n        FROM    stv_blocklist\n        WHERE   tbl > 0 and\n                tbl not in\n                (\n                SELECT id\n                FROM stv_tbl_perm\n                WHERE name like '%volt_tt%' and slice = 0\n                )\n        GROUP BY temporary,\n                 on_disk,\n                 slice\n        ) as bc\n ON ss.slice = bc.slice\n GROUP BY bc.temporary,\n bc.on_disk,\n ss.node;",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "useractivitylog",
+            "tagA": "a",
+            "tagB": "b"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607464915.0
+    },
+    {
+        "event": "'2020-12-08T22:01:55Z UTC [ db=dev user=rdsdb pid=23170 userid=1 xid=245636 ]' LOG: COMMIT;",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "useractivitylog",
+            "tagA": "a",
+            "tagB": "b"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607464915.0
+    },
+    {
+        "event": "'2020-12-08T22:46:11Z UTC [ db=dev user=rdsdb pid=28585 userid=1 xid=247049 ]' LOG: select COALESCE(LISTAGG(wscc.service_class,','),'-2')\nfrom stv_wlm_service_class_config wscc\nLEFT JOIN (select service_class, count(*) from stl_wlm_query where userid>1 and service_class between 6 and 13 and total_queue_time>0 and service_class_start_time >= (select greatest(sysdate-4, max(recordtime)) from stl_wlm_trace where userid=1 and event='try resize task pool') group by service_class) b USING (service_class)\nWHERE b.service_class is null\nAND wscc.service_class BETWEEN 6 and 13;",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "useractivitylog",
+            "tagA": "a",
+            "tagB": "b"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607467571.0
+    }
+]

@@ -50,7 +50,7 @@ class ApplicationELBParser(Parser):
     def try_parse(self, metadata, record):
         fields = dict(zip(FIELD_NAMES, record))
 
-        hec_time = self.iso_time_to_hec_time(fields["request_creation_time"]) if "request_creation_time" in fields else None
+        hec_time = self._iso_time_to_hec_time(fields["request_creation_time"]) if "request_creation_time" in fields else None
         arns = self._get_arns(metadata, fields)
         return ParsedLine(hec_time, fields, arns)
 

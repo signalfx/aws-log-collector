@@ -36,13 +36,13 @@ class S3LogsConverter(Converter):
                 parser = self._find_parser(key)
                 if parser is None:
                     log.error(f"Parser not found for object s3://{bucket}/{key}")
-                    sfx_metrics.inc_counter('sf.org.awsLogCollector.num.s3.unsupported_log_files')
+                    sfx_metrics.inc_counter("sf.org.awsLogCollector.num.s3.unsupported_log_files")
                     continue
 
                 yield from self._convert_s3_object_to_hec_items(bucket, key, parser, context_metadata, sfx_metrics)
             except Exception as e:
                 log.error(f"Failed to process s3 log file: s3://{bucket}/{key} error: {e}")
-                sfx_metrics.inc_counter('sf.org.awsLogCollector.num.s3.errors')
+                sfx_metrics.inc_counter("sf.org.awsLogCollector.num.s3.errors")
 
     def _convert_s3_object_to_hec_items(self, bucket, key, parser, context_metadata, sfx_metrics):
         namespace = parser.get_namespace()
@@ -50,7 +50,8 @@ class S3LogsConverter(Converter):
         common_metadata = {**context_metadata, **file_metadata}
 
         bytes_received = 0
-        for line in self._s3_service.read_lines(bucket, key):
+        raw_lines_generator = self._s3_service.read_lines(bucket, key)
+        for line in parser.complete_lines(raw_lines_generator):
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
             metadata = self._logs_enricher.get_metadata(parsed_line.arns, common_metadata, sfx_metrics)
@@ -68,7 +69,7 @@ class S3LogsConverter(Converter):
     @staticmethod
     def _to_hec(namespace, parsed_line, metadata):
         hec_item = {
-            "event": parsed_line.raw_log_line,
+            "event": parsed_line.log_line,
             "fields": metadata,
             "source": namespace,
             "sourcetype": "aws:" + namespace,
