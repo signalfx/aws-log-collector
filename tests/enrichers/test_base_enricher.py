@@ -25,7 +25,7 @@ class BaseEnrichmentSuite(TestCase):
         self.assertEqual(expected, actual)
 
     def test_get_tags(self):
-        expected_tags = {'tag1': 'val1', 'tag2': 'val2'}
+        expected_tags = {"tag1": "val1", "tag2": "val2"}
         self.tag_cache_mock.get.return_value = expected_tags
 
         tags = self.log_enricher.get_tags("some:arn", self.sfx_metrics)

@@ -9,14 +9,29 @@ FORWARDER_FUNCTION_NAME = "splunk_aws_log_forwarder"
 FORWARDER_FUNCTION_VERSION = "1.0.1"
 
 
-def read_json_file(file_name):
-    with open(file_name, 'r') as file:
-        return json.loads(file.read())
+def get_read_lines_mock(file_name):
+    gen = get_raw_line_generator(file_name)
+
+    def read_lines_mock(bucket, key):
+        return gen
+
+    return read_lines_mock
+
+
+def get_raw_line_generator(file_name):
+    lines = read_text_file(file_name)
+    for line in lines:
+        yield line
 
 
 def read_text_file(file_name):
     with open(file_name, 'r') as file:
         return file.read().strip().split("\n")
+
+
+def read_json_file(file_name):
+    with open(file_name, 'r') as file:
+        return json.loads(file.read())
 
 
 def lambda_context():

@@ -1,0 +1,34 @@
+'2020-12-08T22:00:03Z UTC [ db=dev user=rdsdb pid=685 userid=1 xid=245578 ]' LOG: SET statement_timeout TO 120000
+'2020-12-08T22:00:03Z UTC [ db=dev user=rdsdb pid=685 userid=1 xid=245579 ]' LOG: select count(distinct id) from pg_catalog.stv_tbl_perm where temp = false and db_id > 1 and id not in (select oid from pg_class where relname like 'redshift_auto_health_check_%' and relnamespace in (select oid from pg_namespace where nspname='pg_internal'))
+'2020-12-08T22:01:55Z UTC [ db=dev user=rdsdb pid=23170 userid=1 xid=245636 ]' LOG: SELECT  ss.node as node,
+        bc.temporary as temporary,
+        bc.on_disk as on_disk,
+        SUM(bc.size) as size
+FROM    stv_slices as ss
+JOIN    (
+        SELECT  slice,
+                on_disk,
+                temporary,
+                count(*) as size
+        FROM    stv_blocklist
+        WHERE   tbl > 0 and
+                tbl not in
+                (
+                SELECT id
+                FROM stv_tbl_perm
+                WHERE name like '%volt_tt%' and slice = 0
+                )
+        GROUP BY temporary,
+                 on_disk,
+                 slice
+        ) as bc
+ ON ss.slice = bc.slice
+ GROUP BY bc.temporary,
+ bc.on_disk,
+ ss.node;
+'2020-12-08T22:01:55Z UTC [ db=dev user=rdsdb pid=23170 userid=1 xid=245636 ]' LOG: COMMIT;
+'2020-12-08T22:46:11Z UTC [ db=dev user=rdsdb pid=28585 userid=1 xid=247049 ]' LOG: select COALESCE(LISTAGG(wscc.service_class,','),'-2')
+from stv_wlm_service_class_config wscc
+LEFT JOIN (select service_class, count(*) from stl_wlm_query where userid>1 and service_class between 6 and 13 and total_queue_time>0 and service_class_start_time >= (select greatest(sysdate-4, max(recordtime)) from stl_wlm_trace where userid=1 and event='try resize task pool') group by service_class) b USING (service_class)
+WHERE b.service_class is null
+AND wscc.service_class BETWEEN 6 and 13;
