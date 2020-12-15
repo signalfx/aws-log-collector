@@ -1,0 +1,32 @@
+[
+    {
+        "event": "1|rdsdb | |alter |1|1|1|9223372036854775807|14872|1061|Thu, 3 Dec 2020 10:18:38:416",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "userlog",
+            "tagA": 1,
+            "tagB": "two"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1606990718.416
+    },
+    {
+        "event": "100|awsuser | |create |1|1|0|9223372036854775807|14888|1080|Thu, 3 Dec 2020 10:18:38:695",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "userlog",
+            "tagA": 1,
+            "tagB": "two"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1606990718.695
+    }
+]

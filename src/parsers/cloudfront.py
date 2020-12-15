@@ -42,5 +42,5 @@ class CloudFrontParser(Parser):
             return ParsedLine(None, {}, arns)
         else:
             fields = dict(zip(FIELD_NAMES, record))
-            hec_time = self.iso_time_to_hec_time(fields["date"].strip() + "T" + fields["time"].strip())
+            hec_time = self._iso_time_to_hec_time(fields["date"].strip() + "T" + fields["time"].strip())
             return ParsedLine(hec_time, fields, arns)

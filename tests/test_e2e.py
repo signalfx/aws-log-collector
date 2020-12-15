@@ -13,7 +13,7 @@ from function import LogCollector
 from lib.client import BatchClient
 from lib.s3_service import S3Service
 from lib.tags_cache import TagsCache
-from utils import read_text_file
+from utils import read_text_file, get_read_lines_mock
 
 
 @patch.object(signalfx.SignalFx, "ingest")
@@ -28,7 +28,7 @@ class LogCollectingSuite(TestCase):
     def test_cloudwatch(self, tags_cache_get_mock, send_method_mock, _, __):
         # GIVEN
         tags_cache_get_mock.return_value = CUSTOM_TAGS
-        event, cw_event = self._read_aws_log_event_from_file('data/sample_lambda_log.json')
+        event, cw_event = self._read_aws_log_event_from_file('data/lambda_log.json')
 
         # WHEN
         self.log_forwarder.forward_log(cw_event, lambda_context())
@@ -62,7 +62,7 @@ class LogCollectingSuite(TestCase):
 
     def test_s3_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
-            "service": "s3",
+            "name": "s3",
             "arn_to_tags": {
                 "arn:aws:s3:::integrations-team":
                     {"bucket-tag-1": 1, "bucket-tag-2": "abc"},
@@ -74,7 +74,7 @@ class LogCollectingSuite(TestCase):
 
     def test_s3_alb(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
-            "service": "alb",
+            "name": "alb",
             "arn_to_tags": {
                 "arn:aws:elasticloadbalancing:us-east-2:840385940912:loadbalancer/app/my-loadbalancer/50dc6c495c0c9188":
                     {"elb-a": 1, "elb-b": "one"},
@@ -86,7 +86,7 @@ class LogCollectingSuite(TestCase):
 
     def test_s3_nlb(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
-            "service": "nlb",
+            "name": "nlb",
             "arn_to_tags": {
                 "arn:aws:elasticloadbalancing:us-east-2:840385940912:loadbalancer/net/my-network-loadbalancer/c6e77e28c25b2234":
                     {"lb-a": 1, "lb-b": "two"}
@@ -96,7 +96,7 @@ class LogCollectingSuite(TestCase):
 
     def test_s3_cloudfront(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
-            "service": "cloudfront",
+            "name": "cloudfront",
             "arn_to_tags": {
                 "arn:aws:cloudfront::134183635603:distribution/EMLARXS9EXAMPLE":
                     {"dist-a": 1, "dist-b": "two"}
@@ -104,20 +104,47 @@ class LogCollectingSuite(TestCase):
         }
         self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
 
+    def test_s3_redshift_connectionlog(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "name": "redshift_connectionlog",
+            "arn_to_tags": {
+                "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1": {"tagA": 1, "tagB": "two"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def test_s3_redshift_userlog(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "name": "redshift_userlog",
+            "arn_to_tags": {
+                "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1": {"tagA": 1, "tagB": "two"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def test_s3_redshift_useractivitylog(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        scenario = {
+            "name": "redshift_useractivitylog",
+            "arn_to_tags": {
+                "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1": {"tagA": "a", "tagB": "b"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
     def _test_s3_logs_handling(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario):
         # GIVEN
-        service = scenario["service"]
+        scenario_name = scenario["name"]
         arn_to_tags = scenario["arn_to_tags"]
         tags_cache_get_mock.side_effect = lambda arn, _: arn_to_tags[arn] if arn in arn_to_tags else None
 
-        s3_event = read_json_file(f"data/sample_{service}_log_event.json")
-        s3_service_read_lines_mock.return_value = read_text_file(f"data/sample_{service}_access_log.txt")
+        s3_event = read_json_file(f"data/e2e/{scenario_name}_event.json")
+        s3_service_read_lines_mock.side_effect = get_read_lines_mock(f"data/e2e/{scenario_name}.log")
 
         # WHEN
         self.log_forwarder.forward_log(s3_event, lambda_context())
 
         # THEN
-        expected_hec_events = read_json_file(f"data/expected_{service}_hec_items.json")
+        expected_hec_events = read_json_file(f"data/e2e/{scenario_name}_hec_items.json")
         actual_hec_events = self._parse_hec_events_to_json(send_method_mock.call_args)
         self.assertEqual(expected_hec_events, actual_hec_events)
 

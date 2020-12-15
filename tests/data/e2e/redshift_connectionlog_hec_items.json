@@ -1,0 +1,47 @@
+[
+    {
+        "event": "authenticated |Mon, 7 Dec 2020 20:01:55:177|[local] | |5108|dev |rdsdb |Ident |0| | |0| | | | | | |",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "connectionlog",
+            "tagA": 1,
+            "tagB": "two"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607371315.177
+    },
+    {
+        "event": "initiating session |Mon, 7 Dec 2020 20:01:55:177|[local] | |5108|dev |rdsdb |Ident |0| | |0| | | | | | |",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "connectionlog",
+            "tagA": 1,
+            "tagB": "two"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607371315.177
+    },
+    {
+        "event": "disconnecting session |Mon, 7 Dec 2020 20:01:55:304|[local] | |5108|dev |rdsdb |Ident |127304| | |0| | | | | | |",
+        "fields": {
+            "logForwarder": "splunk_aws_log_forwarder:1.0.1",
+            "region": "eu-central-1",
+            "awsAccountId": "906383545488",
+            "clusterArn": "arn:aws:redshift:eu-central-1:906383545488:cluster:redshift-cluster-1",
+            "logType": "connectionlog",
+            "tagA": 1,
+            "tagB": "two"
+        },
+        "source": "Redshift",
+        "sourcetype": "aws:Redshift",
+        "time": 1607371315.304
+    }
+]

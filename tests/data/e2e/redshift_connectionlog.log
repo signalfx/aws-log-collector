@@ -1,0 +1,3 @@
+authenticated |Mon, 7 Dec 2020 20:01:55:177|[local] | |5108|dev |rdsdb |Ident |0| | |0| | | | | | |
+initiating session |Mon, 7 Dec 2020 20:01:55:177|[local] | |5108|dev |rdsdb |Ident |0| | |0| | | | | | |
+disconnecting session |Mon, 7 Dec 2020 20:01:55:304|[local] | |5108|dev |rdsdb |Ident |127304| | |0| | | | | | |
