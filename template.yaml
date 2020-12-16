@@ -29,6 +29,7 @@ Resources:
           SPLUNK_METRIC_URL: !Ref SplunkMetricIngestUrl
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonS3ReadOnlyAccess
         - Statement:
             - Sid: AWSGetTagsOfResources
               Effect: Allow
@@ -53,30 +54,14 @@ Resources:
       SourceAccount: !Ref 'AWS::AccountId'
       SourceArn: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
 
-  SplunkAwsLogsBucket:
-    Type: AWS::S3::Bucket
-    DependsOn: BucketPermission
-    Properties:
-      BucketName: !Sub 'splunk-aws-logs-${AWS::Region}'
-      AccessControl: LogDeliveryWrite
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt SplunkAwsLogsCollector.Arn
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: 'prefix'
-                    Value: 'aws-logs'
-
-  BucketPermission:
+  AllS3BucketsEventsCanInvokeLogCollector:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
       FunctionName: !Ref SplunkAwsLogsCollector
       Principal: s3.amazonaws.com
       SourceAccount: !Ref 'AWS::AccountId'
-      SourceArn: !Sub 'arn:aws:s3:::splunk-aws-logs-${AWS::Region}'
+      SourceArn: !Sub 'arn:aws:s3:::*'
 
 Outputs:
   LambdaArn:
