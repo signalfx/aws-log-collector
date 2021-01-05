@@ -9,15 +9,13 @@ Parameters:
     Type: String
   SplunkMetricIngestUrl:
     Type: String
-  IntegrationId:
-    Type: String
 
 Resources:
   SplunkAwsLogsCollector:
     Type: AWS::Serverless::Function
     Description: Splunk AWS Log Collector
     Properties:
-      FunctionName: !Sub 'splunk-aws-logs-collector-${IntegrationId}'
+      FunctionName: 'splunk-aws-logs-collector'
       Runtime: python3.7
       Timeout: 60
       CodeUri: ./src
@@ -43,7 +41,7 @@ Resources:
                 - s3:GetObject
               Resource: "*"
       Tags:
-        splunk-log-collector-id: !Sub '${IntegrationId}:${AWS::Region}'
+        splunk-log-collector-id: !Sub '${AWS::Region}'
 
   SplunkAwsLogsCollectorPermission:
     Type: AWS::Lambda::Permission
