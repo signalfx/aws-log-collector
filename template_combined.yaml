@@ -1,17 +1,22 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: SAM template for deploying Splunk AWS Logs Collector
+Description: Splunk Logs and Metric Streams Integration
 
 Parameters:
   SplunkAPIKey:
     Type: String
+    Description: Access Token
   SplunkLogIngestUrl:
     Type: String
+    Description: Endpoint where AWS logs will be sent to
   SplunkMetricIngestUrl:
     Type: String
+    Description: Endpoint where internal Splunk (used by Splunk to monitor lambda usage) will be sent to
   SplunkCloudIngestUrl:
     Type: String
+    Description: Endpoint where Metric Streams data will be sent to
   EnabledRegions:
     Type: CommaDelimitedList
+    Description: Comma-delimited list of regions the functionality should be enabled in
 
 Resources:
   SplunkMetricStreamsS3:
@@ -33,7 +38,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Policies:
-        - PolicyName: root
+        - PolicyName: s3_access
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -124,7 +129,7 @@ Resources:
                 Timeout: 60
                 Code: 
                   S3Bucket: !Sub 'o11y-public-${AWS::Region}'
-                  S3Key: 'aws-log-collector/lambda_archive_name'
+                  S3Key: 'aws-log-collector/${LambdaCodeArchive}'
                 Handler: function.lambda_handler
                 Environment:
                   Variables:
@@ -209,7 +214,7 @@ Resources:
                     CompressionFormat: GZIP
                     RoleARN: !Ref S3RoleArn
                 Tags:
-                  - Key: splunk-metric-streams
+                  - Key: splunk-metric-streams-firehose
                     Value: !Sub '${AWS::Region}'
 
             SplunkMetricStreamRole:
@@ -227,7 +232,7 @@ Resources:
                         - 'sts:AssumeRole'
                 Path: /
                 Policies:
-                  - PolicyName: root
+                  - PolicyName: firehose_put
                     PolicyDocument:
                       Version: 2012-10-17
                       Statement:
@@ -238,5 +243,5 @@ Resources:
                           Resource: !GetAtt SplunkMetricStreamsKinesisFirehose.Arn
                 Description: 'A role that allows CloudWatch MetricStreams to publish to Kinesis Firehose'
                 Tags:
-                  - Key: splunk-metric-streams
+                  - Key: splunk-metric-streams-role
                     Value: !Sub '${AWS::Region}'

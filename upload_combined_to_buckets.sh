@@ -32,6 +32,13 @@ if [[ $? -ne 0 ]]
     exit 1
 fi
 
+sam validate --profile ${PROFILE} --template-file template_logs.yaml
+if [[ $? -ne 0 ]]
+  then
+    echo "template_logs.yaml is not valid. Stopping the execution."
+    exit 1
+fi
+
 echo "Building Lambda code..."
 sam build --profile ${PROFILE} --template-file template_build.yaml --build-dir .out
 if [[ $? -ne 0 ]]
@@ -53,13 +60,13 @@ do
   fi
 
   echo "Packaging template, uploading code to s3..."
-  #sam package creates packaged.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
+  #sam package creates packaged_build.yaml and also uploads code to s3. We want the code in s3 anyway so not fighting with it.
   #turns out region parameter is needed when using opt-in regions, due to a bug in s3api (not documented)
-  RAW=`sam package --profile ${PROFILE} --region ${REGION} --template-file .out/template.yaml --output-template-file packaged.yaml --s3-prefix aws-log-collector --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
+  RAW=`sam package --profile ${PROFILE} --region ${REGION} --template-file .out/template.yaml --output-template-file packaged_build.yaml --s3-prefix aws-log-collector --s3-bucket ${BUCKET_NAME} --force-upload 2>&1 >/dev/null`
 
   if [[ $? -ne 0 ]]
     then
-      echo "packaged.yaml was not prepared. Intermediary artifacts were not uploaded to the bucket. Stopping the execution."
+      echo "packaged_build.yaml was not prepared. Intermediary artifacts were not uploaded to the bucket. Stopping the execution."
       exit 1
   fi
 
@@ -76,15 +83,16 @@ do
   fi
 
   # replace lambda code path with the value extracted when uploading the archives to S3
-  sed "s/lambda_archive_name/${EXTRACTED}/g" template_combined.yaml > packaged_combined.yaml
+  # sed "s/\${LambdaCodeArchive}/${EXTRACTED}/g" template_combined.yaml > packaged.yaml
+  sed "s/\${LambdaCodeArchive}/${EXTRACTED}/g" template_logs.yaml > packaged.yaml
 
   # upload the resulting combined template to S3
-  echo "Uploading packaged_combined.yaml to bucket $BUCKET_NAME..."
-  aws s3api put-object --profile ${PROFILE} --region ${REGION} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged_combined.yaml --body packaged_combined.yaml
+  echo "Uploading packaged.yaml to bucket $BUCKET_NAME..."
+  aws s3api put-object --profile ${PROFILE} --region ${REGION} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged_combined.yaml --body packaged.yaml
 
   if [[ $? -ne 0 ]]
     then
-      echo "Error encountered when uploading packaged_combined.yam to a S3 bucket! Stopping the execution."
+      echo "Error encountered when uploading packaged.yam to a S3 bucket! Stopping the execution."
       exit 1
   fi
 
