@@ -86,16 +86,16 @@ do
   # sed "s/\${LambdaCodeArchive}/${EXTRACTED}/g" template_combined.yaml > packaged.yaml
   sed "s/\${LambdaCodeArchive}/${EXTRACTED}/g" template_logs.yaml > packaged.yaml
 
-  # upload the resulting combined template to S3
-  echo "Uploading packaged.yaml to bucket $BUCKET_NAME..."
-  aws s3api put-object --profile ${PROFILE} --region ${REGION} --acl public-read --bucket ${BUCKET_NAME} --key aws-log-collector/packaged_combined.yaml --body packaged.yaml
-
-  if [[ $? -ne 0 ]]
-    then
-      echo "Error encountered when uploading packaged.yam to a S3 bucket! Stopping the execution."
-      exit 1
-  fi
-
 done
+
+# upload the resulting combined template to global S3
+echo "Uploading packaged.yaml to bucket $BUCKET_NAME_PREFIX..."
+aws s3api put-object --profile ${PROFILE} --region "us-east-1" --acl public-read --bucket ${BUCKET_NAME_PREFIX} --key aws-log-collector/packaged.yaml --body packaged.yaml
+
+if [[ $? -ne 0 ]]
+  then
+    echo "Error encountered when uploading packaged.yam to a S3 bucket! Stopping the execution."
+    exit 1
+fi
 
 echo "======================================================================================================"
