@@ -38,3 +38,11 @@ do
     exit 1
   fi
 done
+
+echo "Making sure global S3 bucket exists..."
+./ensure_bucket_exists.sh --bucket-name "${BUCKET_NAME_PREFIX}" --region "us-east-1" --profile "${PROFILE}"
+if [[ $? -ne 0 ]]
+then
+  echo "Problem preparing S3 bucket! Stopping the execution."
+  exit 1
+fi
