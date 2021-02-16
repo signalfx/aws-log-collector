@@ -2,22 +2,22 @@ import json
 import logging
 import os
 
-from converters.cloudwatch import CloudWatchLogsConverter
-from converters.s3 import S3LogsConverter
-from enrichers.cloudwatch import CloudWatchLogsEnricher
-from enrichers.s3 import S3LogsEnricher
-from lib.client import BatchClient
-from lib.s3_service import S3Service
-from lib.tags_cache import TagsCache
-from logger import log
-from metric import SfxMetrics
-from parsers.alb import ApplicationELBParser
-from parsers.cloudfront import CloudFrontParser
-from parsers.nlb import NetworkELBParser
-from parsers.redshift_connectionlog import RedshiftConnectionLogParser
-from parsers.redshift_useractivity import RedshiftUserActivityLogParser
-from parsers.redshift_userlog import RedshiftUserLogParser
-from parsers.s3 import S3Parser
+from aws_log_collector.converters.cloudwatch import CloudWatchLogsConverter
+from aws_log_collector.converters.s3 import S3LogsConverter
+from aws_log_collector.enrichers.cloudwatch import CloudWatchLogsEnricher
+from aws_log_collector.enrichers.s3 import S3LogsEnricher
+from aws_log_collector.lib.client import BatchClient
+from aws_log_collector.lib.s3_service import S3Service
+from aws_log_collector.lib.tags_cache import TagsCache
+from aws_log_collector.parsers.alb import ApplicationELBParser
+from aws_log_collector.parsers.cloudfront import CloudFrontParser
+from aws_log_collector.parsers.nlb import NetworkELBParser
+from aws_log_collector.parsers.redshift_connectionlog import RedshiftConnectionLogParser
+from aws_log_collector.parsers.redshift_useractivity import RedshiftUserActivityLogParser
+from aws_log_collector.parsers.redshift_userlog import RedshiftUserLogParser
+from aws_log_collector.parsers.s3 import S3Parser
+from aws_log_collector.logger import log
+from aws_log_collector.metric import SfxMetrics
 
 SPLUNK_LOG_URL = os.getenv("SPLUNK_LOG_URL", default="<unknown-url>")
 SPLUNK_METRIC_URL = os.getenv("SPLUNK_METRIC_URL", default="<unknown-url>")

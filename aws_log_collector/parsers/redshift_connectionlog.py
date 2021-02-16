@@ -1,5 +1,5 @@
-from parsers.parser import ParsedLine
-from parsers.redshift_base import RedshiftBaseParser
+from aws_log_collector.parsers.parser import ParsedLine
+from aws_log_collector.parsers.redshift_base import RedshiftBaseParser
 
 FIELD_NAMES = ("event", "recordtime")  # we do not need other fields for now
 

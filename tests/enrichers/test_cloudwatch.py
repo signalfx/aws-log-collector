@@ -2,8 +2,8 @@ import unittest
 from unittest import TestCase
 from unittest.mock import Mock
 
-from enrichers.cloudwatch import CloudWatchLogsEnricher
-from utils import lambda_context, read_json_file, FORWARDER_FUNCTION_ARN_PREFIX, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
+from aws_log_collector.enrichers.cloudwatch import CloudWatchLogsEnricher
+from tests.utils import lambda_context, read_json_file, FORWARDER_FUNCTION_ARN_PREFIX, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
     FORWARDER_FUNCTION_VERSION
 
 CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
@@ -19,7 +19,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_lambda_enrichment(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/lambda_log.json')
+        event = read_json_file('tests/data/lambda_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -47,7 +47,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_lambda_enrichment_no_tags(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = None
-        event = read_json_file('../data/lambda_log.json')
+        event = read_json_file('tests/data/lambda_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -74,7 +74,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_rds_postgres(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/rds_postgres_log.json')
+        event = read_json_file('tests/data/rds_postgres_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -100,7 +100,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_rds_mysql(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/rds_mysql_log.json')
+        event = read_json_file('tests/data/rds_mysql_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -126,7 +126,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_rds_aurora_cluster(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/rds_aurora_cluster_log.json')
+        event = read_json_file('tests/data/rds_aurora_cluster_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -152,7 +152,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_eks(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/eks_log.json')
+        event = read_json_file('tests/data/eks_log.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)
@@ -179,7 +179,7 @@ class CloudWatchEnrichmentSuite(TestCase):
     def test_api_gateway(self):
         # GIVEN
         self.tag_cache_mock.get.return_value = CUSTOM_TAGS
-        event = read_json_file('../data/api_gateway.json')
+        event = read_json_file('tests/data/api_gateway.json')
 
         # WHEN
         actual = self.log_enricher.get_metadata(event, lambda_context(), self.sfx_metrics)

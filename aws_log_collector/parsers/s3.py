@@ -3,8 +3,8 @@ import re
 from datetime import datetime
 from urllib.parse import unquote_plus
 
-from logger import log
-from parsers.parser import Parser, ParsedLine
+from aws_log_collector.logger import log
+from aws_log_collector.parsers.parser import Parser, ParsedLine
 
 # S3 object key format: YYYY-mm-DD-HH-MM-SS-UniqueString/
 OBJECT_KEY_REGEX = re.compile(r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-[a-zA-Z0-9_-]+$")

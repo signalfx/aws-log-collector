@@ -5,8 +5,8 @@ import logging
 import requests
 import time
 
-from logger import log
-from metric import size_of_str
+from aws_log_collector.metric import size_of_str
+from aws_log_collector.logger import log
 
 
 class BatchClient(object):

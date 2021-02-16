@@ -1,5 +1,5 @@
-from parsers.parser import ParsedLine
-from parsers.redshift_base import RedshiftBaseParser
+from aws_log_collector.parsers.parser import ParsedLine
+from aws_log_collector.parsers.redshift_base import RedshiftBaseParser
 
 FIELD_NAMES = ("userid", "username", "oldusername", "action",
                "usecreatedb", "usesuper", "usecatupd",

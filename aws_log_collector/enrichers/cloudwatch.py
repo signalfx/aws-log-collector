@@ -1,5 +1,5 @@
-from enrichers.base_enricher import BaseEnricher
-from logger import log
+from aws_log_collector.enrichers.base_enricher import BaseEnricher
+from aws_log_collector.logger import log
 
 LOG_GROUP_NAME_PREFIX_TO_NAMESPACE_MAPPING = {
     "/aws/lambda": "lambda",

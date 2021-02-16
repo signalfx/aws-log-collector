@@ -3,9 +3,9 @@ import gzip
 import json
 from io import BytesIO, BufferedReader
 
-from converters.converter import Converter
-from enrichers.cloudwatch import CloudWatchLogsEnricher
-from metric import size_of_json
+from aws_log_collector.converters.converter import Converter
+from aws_log_collector.enrichers.cloudwatch import CloudWatchLogsEnricher
+from aws_log_collector.metric import size_of_json
 
 
 class CloudWatchLogsConverter(Converter):

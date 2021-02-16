@@ -3,8 +3,8 @@ from abc import ABC
 from datetime import datetime
 from typing import Dict
 
-from logger import log
-from parsers.parser import Parser
+from aws_log_collector.logger import log
+from aws_log_collector.parsers.parser import Parser
 
 # AWS Redshift access log file format:
 # AWSLogs/AccountID/ServiceName/Region/Year/Month/Day/AccountID

@@ -2,11 +2,11 @@ import json
 from typing import List
 from urllib.parse import unquote_plus
 
-from converters.converter import Converter
-from enrichers.s3 import S3LogsEnricher
-from lib.s3_service import S3Service
-from logger import log
-from parsers.parser import Parser, ParsedLine
+from aws_log_collector.converters.converter import Converter
+from aws_log_collector.enrichers.s3 import S3LogsEnricher
+from aws_log_collector.lib.s3_service import S3Service
+from aws_log_collector.logger import log
+from aws_log_collector.parsers.parser import Parser, ParsedLine
 
 
 class S3LogsConverter(Converter):

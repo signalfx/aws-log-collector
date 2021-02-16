@@ -2,8 +2,8 @@ import unittest
 from unittest import TestCase
 from unittest.mock import Mock
 
-from enrichers.base_enricher import BaseEnricher
-from utils import lambda_context, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
+from aws_log_collector.enrichers.base_enricher import BaseEnricher
+from tests.utils import lambda_context, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
     FORWARDER_FUNCTION_VERSION
 
 

@@ -1,7 +1,7 @@
 import re
 from typing import Dict
 
-from parsers.parser import Parser, ParsedLine
+from aws_log_collector.parsers.parser import Parser, ParsedLine
 
 # AWS CloudFront access log file format:
 # <optional prefix>/<distribution ID>.YYYY-MM-DD-HH.unique-ID.gz

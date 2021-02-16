@@ -40,3 +40,16 @@ For example, if you wish to check how the published template in eu-central-1 wor
 `https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?templateURL=https://o11y-public-eu-central-1.s3.eu-central-1.amazonaws.com/aws-log-collector/packaged.yaml`
 
 (if you don't pass parameter overrides, they will be left empty for you to fill)
+
+# Local deployment
+Lambdas can now be run as docker containers.
+
+```shell script
+docker build -t aws-log-collector:latest . \
+    --build-arg AWS_DEFAULT_REGION=*** \
+    --build-arg AWS_ACCESS_KEY_ID=*** \
+    --build-arg AWS_SECRET_ACCESS_KEY=***
+docker run -p 9000:8080  aws-log-collector:latest 
+curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
+```
+See ./tests/data/ for sample payloads.

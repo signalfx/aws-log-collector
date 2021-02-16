@@ -2,6 +2,8 @@
 samconfig.toml
 .aws-sam
 .out
+.coverage
 build.toml
 packaged.yaml
 serverless-bucket-policy-replaced.json
+**/**/__pycache__

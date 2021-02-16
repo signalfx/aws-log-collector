@@ -1,6 +1,6 @@
 import copy
 
-from enrichers.base_enricher import BaseEnricher
+from aws_log_collector.enrichers.base_enricher import BaseEnricher
 
 
 class S3LogsEnricher(BaseEnricher):

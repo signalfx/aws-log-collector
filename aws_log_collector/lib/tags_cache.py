@@ -1,8 +1,6 @@
 import boto3
 import time
 
-from logger import log
-
 SUPPORTED_NAMESPACES = ["lambda", "rds", "eks", "apigateway", "s3"]
 
 

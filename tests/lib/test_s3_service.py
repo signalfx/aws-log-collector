@@ -1,7 +1,7 @@
 import unittest
 from unittest import TestCase
 
-from lib.s3_service import S3Service
+from aws_log_collector.lib.s3_service import S3Service
 
 
 class S3ServiceSuite(TestCase):
