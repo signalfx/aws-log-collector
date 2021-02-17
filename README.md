@@ -1,55 +1,98 @@
 # aws-log-collector
-Code and deployment scripts for AWS lambda forwarding AWS logs to o11y log ingest
+This project contains AWS Lambda function. Aws-log-collector needs to be deployed by users who wish to send AWS logs to Splunk Observability Suite.
+Splunk provides a variety of CloudFormation templates which deploy and configure this function. We strongly recommend using these templates if possible in your environment.
 
-## Overview
-* `template.yaml` uses a Serverless "dialect" of CloudFormation. Before it can be used as a CloudFormation template, it needs to be transformed to valid CloudFormation file.
-* Lambda code (or .zip) location is defined in `template.yaml` and needs to be uploaded to s3 bucket in order for CloudFormation to be able to reference it. It will happen under the hood when you run scripts below.
- 
-## I made changes, how do I test e2e?
-1. Run
-    
-    `sam deploy --profile <profile-name> --region <region> --stack-name <your-test-stack> --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --parameter-overrides "SplunkAPIKey=<key> SplunkLogIngestUrl=<ingest-url> SplunkMetricIngestUrl=<ingest-url> IntegrationId=<IntegrationId>"`
-    
-    For example:
-    
-    `sam deploy --profile integrations --region eu-central-1 --stack-name test-stack-dec-3 --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --parameter-overrides "SplunkAPIKey=1234 SplunkLogIngestUrl=http://lab-ingest.corp.signalfuse.com:8080/v1/log SplunkMetricIngestUrl=http://lab-ingest.corp.signalfuse.com:8080/v2/datapoint IntegrationId=1234"`
-2. Test
-3. Delete your CF stack
+Deployment of this function alone is not enough to send AWS logs to Splunk Observability Suite. You need to configure a matching integration in Observability Backend. 
+Please start the process from your Splunk Observability account if you haven't done so. 
 
-## Releasing
-The script will release to all regions available in the target AWS account (R&D account in case you use commands below)
+Continue to read, if you started the setup of AWS Integration in Splunk Observability and wish to deploy log collector using AWS Console, or a tool other than CloudFormation.
 
-1. (Optional, needed only if a new region is enabled in the account) 
+#Production deployment
 
-    Make sure S3 buckets in all regions exist (if bucket exists, the script won't touch it).
-   `./ensure_all_buckets_exist.sh --profile rnd --bucket-name-prefix o11y-public`
-   
-2. Transform the file, upload artifacts (code) and upload resulting `packaged.yaml`
+## AWS GOV and AWS China deployment using CloudFormation
 
-   `./upload_packaged_to_all_buckets.sh --profile rnd --bucket-name-prefix o11y-public`
-   
-## Quick link to the template.
+## AWS deployment using CloudFormation without StackSets
 
-Quick link, when opened in AWS console, will present you with a form to deploy a template passed as a parameter.
+## Manual deployment
+### Overview
+Whatever the tool of choice, you need to complete following steps to deploy and configure this lambda function in a way which guarantees successful submission of logs to Splunk Observability.
 
-The quick link format is:
-`https://<region>.console.aws.amazon.com/cloudformation/home?region=<region>#/stacks/create/review?templateURL=<templateUrl>&param_IntegrationId=<integrationId>&param_SplunkAPIKey=<accessKey>&param_SplunkLogIngestUrl=<logIngestUrl>&param_SplunkMetricIngestUrl=<metricIngestUrl>`
+You need to complete following steps:
+1) Get the .zip archive containing lambda code
+2) Create IAM role
+3) Create AWS Lambda function using the archive and the role
+3) Set environment variables
+4) Tag the lambda
+5) Wait (up to ~15 minutes)
 
-For example, if you wish to check how the published template in eu-central-1 works, login to AWS console where you want to deploy and go to:
+### Getting the .zip archive
+Option 1) Download zip archive from TODO_LINK_HERE
+Option 2) Build lambda from source
 
-`https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?templateURL=https://o11y-public-eu-central-1.s3.eu-central-1.amazonaws.com/aws-log-collector/packaged.yaml`
+### Creating IAM role
+Required policy:
+```shell script
 
-(if you don't pass parameter overrides, they will be left empty for you to fill)
+```
 
-# Local deployment
-Lambdas can now be run as docker containers.
+### Creating AWS Lambda
+
+### Setting environment variables
+
+### Tag the lambda
+
+#Maintainers info
+
+### Unit Testing
+`make tests`
+
+### E2E Testing: deploy using AWS SAM
+* Build `.zip` archive containing your changes with `make local-zip`
+* Run 
+```
+TEST_STACK_NAME=$(whoami)-$(ts -n)-test-stack    
+sam deploy --profile integrations --region eu-central-1 --stack-name $TEST_STACK_NAME --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --template-file template_build.yaml
+```
+* Setup environment variables
+* Cleanup 
+```
+aws cloudformation --profile integrations --region eu-central-1 delete-stack --stack-name $TEST_STACK_NAME
+```
+
+### E2E Testing: running locally using Docker
+Lambdas can now be run as Docker containers.
+
+### Known issues
+The context event passed from lambda runtime emulator to lambda handler does not contain a valid function arn. Aws-log-collector lambda fails, because it is unable to extract a valid account id from it.
+The known workaround for purpose of local testing is to modify `base_enricher.py` file:
+* add an import:
+```python
+from tests.utils import lambda_context
+```
+* replace `get_context_metadata(self, context)` implementation with the following:
+```
+    def get_context_metadata(self, __):
+        context = lambda_context()
+        region, aws_account_id = self._parse_log_collector_function_arn(context)
+        return {
+            "logForwarder": self._get_log_forwarder(context),
+            "region": region,
+            "awsAccountId": aws_account_id
+        }
+```
+The limitation is also the only reason why Dockerfile contains the `tests` module which would be otherwise not needed.
+
+### Running the lambda locally in Docker
 
 ```shell script
 docker build -t aws-log-collector:latest . \
     --build-arg AWS_DEFAULT_REGION=*** \
     --build-arg AWS_ACCESS_KEY_ID=*** \
     --build-arg AWS_SECRET_ACCESS_KEY=***
-docker run -p 9000:8080  aws-log-collector:latest 
-curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
+
+docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=*** --env SPLUNK_LOG_URL=*** --env SPLUNK_METRIC_URL=***
+                                                                  
+curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d "@tests/data/e2e/nlb_event.json"
 ```
-See ./tests/data/ for sample payloads.
+
+

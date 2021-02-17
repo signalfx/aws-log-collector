@@ -3,16 +3,15 @@
 PYTHON = python3
 PIP = pip3
 
-# .PHONY defines parts of the makefile that are not dependant on any specific file
-# This is most often used to store functions
-.PHONY = help init test tests coverage lint docker-image
-
-# Defining an array variable
-FILES = input output
-
 # Defines the default target that `make` will to try to make, or in the case of a phony target, execute the specified commands
 # This target is executed whenever we just type `make`
 .DEFAULT_GOAL = help
+
+clean:
+	rm -f aws-log-collector.local.zip
+	rm -f aws-log-collector.stage.zip
+	rm -f aws-log-collector.release.zip
+	rm -rf package
 
 coverage:
 	coverage run --source=aws_log_collector -m unittest discover tests
@@ -21,8 +20,12 @@ coverage:
 # The @ makes sure that the command itself isn't echoed in the terminal
 help:
 	@echo "---------------HELP-----------------"
+	@echo "To install all dependencies type make init"
 	@echo "To test the project type make test"
-	@echo "To test the project with coverage type make coverage"
+	@echo "To generate coverage report type make coverage"
+	@echo "To run pylint type make lint"
+	@echo "To create a lambda zip for local testing type make local-zip"
+	@echo "To clean type make clean"
 	@echo "------------------------------------"
 
 init:
@@ -34,11 +37,22 @@ lint: tests
 	pylint tests
 	pylint function.py
 
-test: setup
+local-zip:
+	pip3 install -r requirements.txt --target package
+	cd package && zip -r ../aws-log-collector.local.zip .
+	zip -g aws-log-collector.local.zip function.py
+	zip -gr aws-log-collector.local.zip aws_log_collector -x '*__pycache__*'
+	git rev-parse HEAD > commitId.txt
+	zip -g aws-log-collector.local.zip commitId.txt
+	unzip -l aws-log-collector.local.zip
+
+release-zip: local-zip
+	mv aws-log-collector.local.zip aws-log-collector.release.zip
+
+stage-zip: local-zip
+	mv aws-log-collector.local.zip aws-log-collector.stage.zip
+
+test: init
 	${PYTHON} -m unittest discover tests
 
-tests: setup
-	${PYTHON} -m unittest discover tests
-
-
-
+tests: test

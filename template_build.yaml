@@ -10,8 +10,7 @@ Resources:
       FunctionName: 'splunk-aws-logs-collector'
       Runtime: python3.7
       Timeout: 60
-      CodeUri: ./src
+      CodeUri: ./aws-log-collector.local.zip
       Handler: function.lambda_handler
       Policies:
         - AWSLambdaBasicExecutionRole
-
