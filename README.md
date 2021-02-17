@@ -7,7 +7,7 @@ Please start the process from your Splunk Observability account if you haven't d
 
 Continue to read, if you started the setup of AWS Integration in Splunk Observability and wish to deploy log collector using AWS Console, or a tool other than CloudFormation.
 
-#Production deployment
+# Production deployment
 
 ## AWS GOV and AWS China deployment using CloudFormation
 
@@ -41,7 +41,7 @@ Required policy:
 
 ### Tag the lambda
 
-#Maintainers info
+# Maintainers info
 
 ### Unit Testing
 `make tests`

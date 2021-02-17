@@ -2,6 +2,7 @@ import base64
 import gzip
 import json
 import unittest
+import os
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -20,6 +21,10 @@ from tests.enrichers.test_cloudwatch import lambda_context, read_json_file, CUST
 @patch.object(S3Service, "read_lines")
 @patch.object(BatchClient, "send")
 @patch.object(TagsCache, "get")
+# TODO should not require connection to AWS
+# @unittest.skipUnless(
+#     os.environ.get('AWS_ACCESS_KEY_ID', False), 'Run only if AWS credentials are configured'
+# )
 class LogCollectingSuite(TestCase):
 
     def setUp(self) -> None:

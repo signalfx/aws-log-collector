@@ -32,7 +32,7 @@ init:
 	${PIP} install -r requirements.txt
 	${PIP} install -r requirements-dev.txt
 
-lint: tests
+lint:
 	pylint aws_log_collector
 	pylint tests
 	pylint function.py

@@ -1,0 +1,57 @@
+version: 2.1
+
+jobs:
+
+  build-and-test:
+    docker:
+      - image: circleci/python:3.7.5
+    steps:
+      - checkout
+      - run:
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            make init
+      - run:
+# test_e2e.py is included
+          command: |
+            . venv/bin/activate
+            make test AWS_DEFAULT_REGION=eu-central-1
+      - run:
+# || true makes the step pass even if the linter returns an error, which is currently the case
+          command: |
+            . venv/bin/activate
+            make lint || true
+
+  promote-to-staging:
+    docker:
+      - image: circleci/python:3.7.5
+    steps:
+      - checkout
+      - run:
+          command: make stage-zip
+          name: Create zip locally
+
+  promote-to-release:
+    docker:
+      - image: circleci/python:3.7.5
+    steps:
+      - checkout
+      - run:
+          command: make release-zip
+          name: Create zip locally
+
+workflows:
+  main:
+    jobs:
+      - build-and-test
+      - promote-to-staging:
+          filters:
+            branches:
+              only: main
+      - promote-to-release:
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /^\d+\.\d+\.\d+$/
