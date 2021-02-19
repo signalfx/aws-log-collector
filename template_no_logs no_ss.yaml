@@ -19,7 +19,7 @@ Resources:
   SplunkMetricStreamsS3Role:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: splunk-metric-streams-s3
+      RoleName: splunk-metric-streams-s3-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -58,7 +58,7 @@ Resources:
           AccessKey: !Ref SplunkAPIKey
           Url: !Ref SplunkCloudIngestUrl
         RequestConfiguration:
-          ContentEncoding: NONE
+          ContentEncoding: GZIP
         S3BackupMode: FailedDataOnly
         S3Configuration:
           BucketARN: !GetAtt SplunkMetricStreamsS3.Arn
