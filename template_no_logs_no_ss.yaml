@@ -19,7 +19,7 @@ Resources:
   SplunkMetricStreamsS3Role:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: splunk-metric-streams-s3-${AWS::Region}
+      RoleName: !Sub 'splunk-metric-streams-s3-${AWS::Region}'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
