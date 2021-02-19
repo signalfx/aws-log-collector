@@ -8,7 +8,7 @@ PIP = pip3
 .DEFAULT_GOAL = help
 
 clean:
-	rm -f aws-log-collector.local.zip
+	rm -f aws-log-collector.test.zip
 	rm -f aws-log-collector.stage.zip
 	rm -f aws-log-collector.release.zip
 	rm -rf package
@@ -39,20 +39,24 @@ lint:
 
 local-zip:
 	pip3 install -r requirements.txt --target package
-	cd package && zip -r ../aws-log-collector.local.zip .
-	zip -g aws-log-collector.local.zip function.py
-	zip -gr aws-log-collector.local.zip aws_log_collector -x '*__pycache__*'
+	cd package && zip -r ../aws-log-collector.test.zip .
+	zip -g aws-log-collector.test.zip function.py
+	zip -gr aws-log-collector.test.zip aws_log_collector -x '*__pycache__*'
 	git rev-parse HEAD > commitId.txt
-	zip -g aws-log-collector.local.zip commitId.txt
-	unzip -l aws-log-collector.local.zip
+	zip -g aws-log-collector.test.zip commitId.txt
+	unzip -l aws-log-collector.test.zip
 
 release-zip: local-zip
-	mv aws-log-collector.local.zip aws-log-collector.release.zip
+	mv aws-log-collector.test.zip aws-log-collector.release.zip
 
 stage-zip: local-zip
-	mv aws-log-collector.local.zip aws-log-collector.stage.zip
+	mv aws-log-collector.test.zip aws-log-collector.stage.zip
 
 test: init
 	${PYTHON} -m unittest discover tests
 
 tests: test
+
+#intended for use from CI only. Use with care - will be called with your default AWS profile!
+publish-release:
+	./publish-to-aws.sh
