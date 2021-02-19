@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Splunk Metric Streams Integration
+
+Parameters:
+  SplunkAPIKey:
+    Type: String
+    Description: Access Token
+    NoEcho: true
+  SplunkCloudIngestUrl:
+    Type: String
+    Description: Endpoint where Metric Streams data will be sent to
+
+Resources:
+  SplunkMetricStreamsS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'splunk-metric-streams-s3-${AWS::AccountId}-${AWS::Region}'
+
+  SplunkMetricStreamsS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: splunk-metric-streams-s3
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - firehose.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: s3_access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:AbortMultipartUpload'
+                  - 's3:GetBucketLocation'
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                  - 's3:ListBucketMultipartUploads'
+                  - 's3:PutObject'
+                Resource: !GetAtt SplunkMetricStreamsS3.Arn
+      Description: 'A role that allows Kinesis Firehose to store failed requests in S3'
+
+  SplunkMetricStreamsKinesisFirehose:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamType: DirectPut
+      DeliveryStreamName: !Sub 'splunk-metric-streams-${AWS::Region}'
+      HttpEndpointDestinationConfiguration:
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 1
+        EndpointConfiguration:
+          AccessKey: !Ref SplunkAPIKey
+          Url: !Ref SplunkCloudIngestUrl
+        RequestConfiguration:
+          ContentEncoding: NONE
+        S3BackupMode: FailedDataOnly
+        S3Configuration:
+          BucketARN: !GetAtt SplunkMetricStreamsS3.Arn
+          CompressionFormat: GZIP
+          RoleARN: !GetAtt SplunkMetricStreamsS3Role.Arn
+      Tags:
+        - Key: splunk-metric-streams-firehose
+          Value: !Sub '${AWS::Region}'
+
+  SplunkMetricStreamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'splunk-metric-streams-${AWS::Region}'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - streams.metrics.cloudwatch.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: firehose_put
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'firehose:PutRecord'
+                  - 'firehose:PutRecordBatch'
+                Resource: !GetAtt SplunkMetricStreamsKinesisFirehose.Arn
+      Description: 'A role that allows CloudWatch MetricStreams to publish to Kinesis Firehose'
+      Tags:
+        - Key: splunk-metric-streams-role
+          Value: !Sub '${AWS::Region}'
