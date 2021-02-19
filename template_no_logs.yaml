@@ -95,7 +95,7 @@ Resources:
                     AccessKey: !Ref SplunkAPIKey
                     Url: !Ref SplunkCloudIngestUrl
                   RequestConfiguration:
-                    ContentEncoding: NONE
+                    ContentEncoding: GZIP
                   S3BackupMode: FailedDataOnly
                   S3Configuration:
                     BucketARN: !Ref S3BucketArn

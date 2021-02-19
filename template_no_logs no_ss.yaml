@@ -58,7 +58,7 @@ Resources:
           AccessKey: !Ref SplunkAPIKey
           Url: !Ref SplunkCloudIngestUrl
         RequestConfiguration:
-          ContentEncoding: GZIP
+          ContentEncoding: NONE
         S3BackupMode: FailedDataOnly
         S3Configuration:
           BucketARN: !GetAtt SplunkMetricStreamsS3.Arn
