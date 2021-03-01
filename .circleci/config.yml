@@ -114,9 +114,11 @@ workflows:
           requires:
             - zip-and-save-test
       - zip-and-save-stage:
+          requires:
+            - build-and-test
           filters:
             branches:
-              only: circleci-project-setup
+              only: main
             tags:
               ignore: /^\d+\.\d+\.\d+$/
       - upload-stage:
@@ -124,7 +126,7 @@ workflows:
             - zip-and-save-stage
           filters:
             branches:
-              only: circleci-project-setup
+              only: main
             tags:
               ignore: /^\d+\.\d+\.\d+$/
       - zip-and-save-release:
@@ -132,7 +134,7 @@ workflows:
             - build-and-test
           filters:
             branches:
-              only: circleci-project-setup
+              ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
       - upload-release:
@@ -140,6 +142,6 @@ workflows:
             - zip-and-save-release
           filters:
             branches:
-              only: circleci-project-setup
+              ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/

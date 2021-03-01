@@ -1,98 +1,100 @@
 # aws-log-collector
-This project contains AWS Lambda function. Aws-log-collector needs to be deployed by users who wish to send AWS logs to Splunk Observability Suite.
+This project contains AWS Lambda function. Aws-log-collector needs to be deployed by users who wish to send AWS logs to Splunk Observability Suite in each region they wish to monitor.
 Splunk provides a variety of CloudFormation templates which deploy and configure this function. We strongly recommend using these templates if possible in your environment.
 
 Deployment of this function alone is not enough to send AWS logs to Splunk Observability Suite. You need to configure a matching integration in Observability Backend. 
 Please start the process from your Splunk Observability account if you haven't done so. 
 
-Continue to read, if you started the setup of AWS Integration in Splunk Observability and wish to deploy log collector using AWS Console, or a tool other than CloudFormation.
+Continue to read, if you started the setup of AWS Integration in Splunk Observability but can't or don't want to use the default deployment process to which you were directed.
 
 # Production deployment
 
-## AWS GOV and AWS China deployment using CloudFormation
+## Deployment using AWS CloudFormation (recommended)
+If you are looking to deploy aws-log-collector with AWS CloudFormation, but not in the recommended setup, please examine alternatives in [this doc](https://github.com/signalfx/aws-cloudformation-templates/blob/main/README.md).
 
-## AWS deployment using CloudFormation without StackSets
-
-## Manual deployment
+## Deployment using AWS Console & other tools
 ### Overview
-Whatever the tool of choice, you need to complete following steps to deploy and configure this lambda function in a way which guarantees successful submission of logs to Splunk Observability.
+You should follow this section if you are looking to deploy aws-log-collector using AWS Console or to automate the deployment with a tool other than CloudFormation
 
 You need to complete following steps:
-1) Get the .zip archive containing lambda code
-2) Create IAM role
-3) Create AWS Lambda function using the archive and the role
-3) Set environment variables
-4) Tag the lambda
-5) Wait (up to ~15 minutes)
+##### 1) Get the .zip archive containing lambda code
+###### AWS Standard regions
 
-### Getting the .zip archive
-Option 1) Download zip archive from TODO_LINK_HERE
-Option 2) Build lambda from source
+In AWS Standard regions, Splunk hosts the latest version of zip archive. You can directly reference the archive in S3 in your region, or [download it](https://o11y-public-us-east-1.s3.amazonaws.com/aws-log-collector/aws-log-collector.release.zip) and use a local copy.
 
-### Creating IAM role
-Required policy:
-```shell script
+For S3, in us-east-1, use the following url: https://o11y-public-us-east-1.s3.amazonaws.com/aws-log-collector/aws-log-collector.release.zip
 
+In other standard regions, use an url in the format of `https://o11y-public-REPLACEWITHREGION.s3.REPLACEWITHREGION.amazonaws.com/aws-log-collector/aws-log-collector.release.zip`
+, for example:
+https://o11y-public-af-south-1.s3.af-south-1.amazonaws.com/aws-log-collector/aws-log-collector.release.zip
+
+All regions host the same version of the archive.
+
+###### AWS China and Gov
+Splunk doesn't host the archive in China or Gov. Please [download the archive](https://o11y-public-us-east-1.s3.amazonaws.com/aws-log-collector/aws-log-collector.release.zip) and host a copy yourself.
+    
+##### 2) Create IAM role
+
+You need an IAM role with following Policies:
+* AWS managed policy `AmazonS3ReadOnlyAccess`
+* AWS managed policy `AWSLambdaBasicExecutionRole`
+* Inline policy which makes it possible for the lambda to be triggered by creation of  S3 objects (log entries)
 ```
-
-### Creating AWS Lambda
-
-### Setting environment variables
-
-### Tag the lambda
-
-# Maintainers info
-
-### Unit Testing
-`make tests`
-
-### E2E Testing: deploy using AWS SAM
-* Build `.zip` archive containing your changes with `make local-zip`
-* Run 
-```
-TEST_STACK_NAME=$(whoami)-$(ts -n)-test-stack    
-sam deploy --profile integrations --region eu-central-1 --stack-name $TEST_STACK_NAME --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --template-file template_build.yaml
-```
-* Setup environment variables
-* Cleanup 
-```
-aws cloudformation --profile integrations --region eu-central-1 delete-stack --stack-name $TEST_STACK_NAME
-```
-
-### E2E Testing: running locally using Docker
-Lambdas can now be run as Docker containers.
-
-### Known issues
-The context event passed from lambda runtime emulator to lambda handler does not contain a valid function arn. Aws-log-collector lambda fails, because it is unable to extract a valid account id from it.
-The known workaround for purpose of local testing is to modify `base_enricher.py` file:
-* add an import:
-```python
-from tests.utils import lambda_context
-```
-* replace `get_context_metadata(self, context)` implementation with the following:
-```
-    def get_context_metadata(self, __):
-        context = lambda_context()
-        region, aws_account_id = self._parse_log_collector_function_arn(context)
-        return {
-            "logForwarder": self._get_log_forwarder(context),
-            "region": region,
-            "awsAccountId": aws_account_id
+{
+    "Statement": [
+        {
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "GetS3LogObjects"
         }
+    ]
+}
 ```
-The limitation is also the only reason why Dockerfile contains the `tests` module which would be otherwise not needed.
-
-### Running the lambda locally in Docker
-
-```shell script
-docker build -t aws-log-collector:latest . \
-    --build-arg AWS_DEFAULT_REGION=*** \
-    --build-arg AWS_ACCESS_KEY_ID=*** \
-    --build-arg AWS_SECRET_ACCESS_KEY=***
-
-docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=*** --env SPLUNK_LOG_URL=*** --env SPLUNK_METRIC_URL=***
-                                                                  
-curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d "@tests/data/e2e/nlb_event.json"
+* Inline policy which makes it possible for the lambda to enrich log entries with resource tags
+```
+{
+    "Statement": [
+        {
+            "Action": [
+                "tag:GetResources"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "AWSGetTagsOfResources"
+        }
+    ]
+}
 ```
 
+
+##### 3) Create AWS Lambda function using the archive and the role
+
+##### 4) Grant AWS services permissions to invoke your lambda function 
+CloudWatch logs and S3 must be able to trigger aws-log-collector. You can add resource based permissions to the lambda you have just created with `aws cli`
+
+```
+aws lambda add-permission --function-name my-function --action lambda:InvokeFunction --statement-id s3 \
+--principal s3.amazonaws.com --output text
+```
+
+```
+aws lambda add-permission --function-name my-function --action lambda:InvokeFunction --statement-id sns \
+--principal sns.amazonaws.com --output text
+```
+
+##### 4) Set environment variables
+These 3 variables are required:
+* `SPLUNK_API_KEY` set to the Access Token from your Splunk Observability organization
+* `SPLUNK_LOG_URL` set to your Splunk Observability ingest url with an additional suffix `/v1/log`. You can find ingest url in `Profile --> Account Settings --> Endpoints --> Real-time Data Ingest`.
+ For example, if your ingest url is `https://ingest.us0.signalfx.com` then the variable should be set to `https://ingest.us0.signalfx.com/v1/log`	.
+* `SPLUNK_METRIC_URL` set to Real-time Data Ingest url from your account. That is the same endpoint as above, but without the suffix. In our example, the value would be `https://ingest.us0.signalfx.com`. Splunk uses this to monitor the usage and adoption of aws-collector-lambda.
+
+##### 5) Tag the lambda
+Tag the lambda function you've created with a tag consisting of a key `splunk-log-collector-id` and value containing region code, for example `splunk-log-collector-id:af-south-1`.
+
+##### 6) Wait (up to ~15 minutes)
+The tag which you have just added is used by Splunk Observability backend to discover your lambda function. Once it is discovered, the backend will start managing lambda triggers.
 
