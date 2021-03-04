@@ -42,9 +42,9 @@ The limitation is also the only reason why Dockerfile contains the `tests` modul
 
 ```shell script
 docker build -t aws-log-collector:latest . \
-    --build-arg AWS_DEFAULT_REGION=*** \
-    --build-arg AWS_ACCESS_KEY_ID=*** \
-    --build-arg AWS_SECRET_ACCESS_KEY=***
+    --build-arg AWS_DEFAULT_REGION=${REPLACE_WITH_REGION} \
+    --build-arg AWS_ACCESS_KEY_ID=${REPLACE_WITH_KEY_ID} \
+    --build-arg AWS_SECRET_ACCESS_KEY=${REPLACE_WITH_KEY}
 
 docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=*** --env SPLUNK_LOG_URL=*** --env SPLUNK_METRIC_URL=***
                                                                   
@@ -53,17 +53,6 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d
 
 # Releasing
 We use CircleCi for build process.
-* Every commit to each branch will trigger unit testing and publication of the zip archive in a test version (so it can be easily referenced by CF templates).
-* Every commit to main branch will trigger unit testing and publication of the zip archive in a stage version.
-* To release a public version, tag a chosen commit with a sem-ver git tag.
-
-#TODO:
-check if the second aws inline policy is really needed if we have s3 read only
-check if the documented policy is enough
-how to make repo public but not OS?
-use only one url variable in lambda
-
-
-
-
-
+* Every commit to each branch will trigger unit testing and publication of the zip archive in a test version.
+* Every commit to the main branch will trigger unit testing and publication of the zip archive in a stage version.
+* To release a public version, tag a chosen commit with a sem-ver git tag, for example `1.0.0`.

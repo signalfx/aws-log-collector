@@ -32,6 +32,7 @@ All regions host the same version of the archive.
 
 ###### AWS China and Gov
 Splunk doesn't host the archive in China or Gov. Please [download the archive](https://o11y-public-us-east-1.s3.amazonaws.com/aws-log-collector/aws-log-collector.release.zip) and host a copy yourself.
+You can use the provided CloudFormation template with the downloaded archive. 
     
 ##### 2) Create IAM role
 
@@ -73,16 +74,29 @@ You need an IAM role with following Policies:
 ##### 3) Create AWS Lambda function using the archive and the role
 
 ##### 4) Grant AWS services permissions to invoke your lambda function 
-CloudWatch logs and S3 must be able to trigger aws-log-collector. You can add resource based permissions to the lambda you have just created with `aws cli`
+CloudWatch logs and S3 file creation events must have permissions to trigger aws-log-collector. 
+You can add resource based permissions to the lambda you have just created with `aws cli`. Please replace names and numbers in the examples to match your environment.
+You can limit these permissions only to resource groups and buckets from which you want to forward logs.
+
+If in doubt, see [Granting function access to AWS services](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html).
 
 ```
-aws lambda add-permission --function-name my-function --action lambda:InvokeFunction --statement-id s3 \
---principal s3.amazonaws.com --output text
+aws lambda add-permission \
+     --function-name aws-log-collector \
+     --action lambda:InvokeFunction
+     --statement-id s3-account \
+     --principal s3.amazonaws.com --source-arn arn:aws:s3:::* \
+     --source-account 123456789012
 ```
 
 ```
-aws lambda add-permission --function-name my-function --action lambda:InvokeFunction --statement-id sns \
---principal sns.amazonaws.com --output text
+aws lambda add-permission \
+    --function-name aws-log-collector \
+    --action "lambda:InvokeFunction" \
+    --statement-id log-groups \
+    --principal logs.region.amazonaws.com \
+    --source-arn arn:aws:logs:region:123456789123:log-group:*:* \
+    --source-account 123456789012"
 ```
 
 ##### 4) Set environment variables
@@ -93,7 +107,7 @@ These 3 variables are required:
 * `SPLUNK_METRIC_URL` set to Real-time Data Ingest url from your account. That is the same endpoint as above, but without the suffix. In our example, the value would be `https://ingest.us0.signalfx.com`. Splunk uses this to monitor the usage and adoption of aws-collector-lambda.
 
 ##### 5) Tag the lambda
-Tag the lambda function you've created with a tag consisting of a key `splunk-log-collector-id` and value containing region code, for example `splunk-log-collector-id:af-south-1`.
+Tag the lambda function you've created with a tag consisting of a key `splunk-log-collector-id` and value containing region code, for example `splunk-log-collector-id`: `af-south-1`.
 
 ##### 6) Wait (up to ~15 minutes)
 The tag which you have just added is used by Splunk Observability backend to discover your lambda function. Once it is discovered, the backend will start managing lambda triggers.
