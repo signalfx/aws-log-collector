@@ -117,9 +117,16 @@ workflows:
       - zip-and-save-test:
           requires:
             - build-and-test
+          filters:
+            branches:
+              only: /pipeline-.*/
       - upload-test:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-test
+          filters:
+            branches:
+              only: /pipeline-.*/
       - zip-and-save-stage:
           requires:
             - build-and-test
@@ -129,6 +136,7 @@ workflows:
             tags:
               ignore: /^\d+\.\d+\.\d+$/
       - upload-stage:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-stage
       - zip-and-save-release:
@@ -141,6 +149,7 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+$/
       - upload-release:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-release
           filters:
