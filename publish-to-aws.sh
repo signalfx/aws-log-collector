@@ -19,7 +19,7 @@ do
     exit 1
   fi
 
-  if [[ -v $PUBLIC ]]
+  if [[ -n "$PUBLIC" ]]
   then
     aws s3api put-object-acl --bucket "$BUCKET_NAME" --key aws-log-collector/"${ZIP}" --acl public-read; PUBLIC_ACCESS=$?
     if [ "$PUBLIC_ACCESS" -eq 0 ]

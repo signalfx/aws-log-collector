@@ -132,6 +132,8 @@ workflows:
           requires:
             - zip-and-save-stage
       - zip-and-save-release:
+          requires:
+            - build-and-test
           # filters are required since `upload-release` has tag filters AND requires `zip-and-save-release`
           filters:
             branches:
