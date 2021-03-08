@@ -55,4 +55,23 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d
 We use CircleCi for build process.
 * Every commit to each branch will trigger unit testing and publication of the zip archive in a test version.
 * Every commit to the main branch will trigger unit testing and publication of the zip archive in a stage version.
+
 * To release a public version, tag a chosen commit with a sem-ver git tag, for example `1.0.0`.
+
+Adding tag `1.0.0` to commit `9fceb02`:
+```
+git tag -a 1.0.0 9fceb02
+git push origin main --tags
+```
+
+Deleting tag `1.0.0` if you made a mistake:
+ 
+```
+# delete local tag '1.0.0'
+git tag -d 1.0.0
+# delete remote tag 'mytag'
+git push origin :refs/tags/1.0.0
+
+# alternative approach
+git push --delete origin 1.0.0
+git tag -d 1.0.0
