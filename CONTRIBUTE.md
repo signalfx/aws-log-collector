@@ -46,14 +46,15 @@ docker build -t aws-log-collector:latest . \
     --build-arg AWS_ACCESS_KEY_ID=${REPLACE_WITH_KEY_ID} \
     --build-arg AWS_SECRET_ACCESS_KEY=${REPLACE_WITH_KEY}
 
-docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=*** --env SPLUNK_LOG_URL=*** --env SPLUNK_METRIC_URL=***
+docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=${REPLACE_WITH_API_KEY} --env SPLUNK_LOG_URL=${REPLACE_WITH_LOG_INGEST_URL} --env SPLUNK_METRIC_URL=${REPLACE_WITH_INGEST_URL}
                                                                   
 curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d "@tests/data/e2e/nlb_event.json"
 ```
 
 # Releasing
 We use CircleCi for build process.
-* Every commit to each branch will trigger unit testing and publication of the zip archive in a test version.
+* Every commit to each branch will trigger unit testing. If you wish to automatically public test version to rnd account in aws, use a branch name starting with "pipeline". If you push commit to a branch prefixed with "pipeline", the test artifact will be uploaded to AWS.
+
 * Every commit to the main branch will trigger unit testing and publication of the zip archive in a stage version.
 
 * To release a public version, tag a chosen commit with a sem-ver git tag, for example `1.0.0`.
