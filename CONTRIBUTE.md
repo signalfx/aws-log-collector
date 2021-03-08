@@ -53,7 +53,7 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d
 
 # Releasing
 We use CircleCi for build process.
-* Every commit to each branch will trigger unit testing. If you wish to automatically public test version to rnd account in aws, use a branch name starting with "pipeline". If you push commit to a branch prefixed with "pipeline", the test artifact will be uploaded to AWS.
+* Every commit to each branch will trigger unit testing. If you want your commits to automatically publish test version to rnd account in AWS, use a branch name starting with "pipeline". If you push a commit to a branch prefixed with "pipeline", the test artifact will be uploaded to AWS.
 
 * Every commit to the main branch will trigger unit testing and publication of the zip archive in a stage version.
 
@@ -70,7 +70,7 @@ Deleting tag `1.0.0` if you made a mistake:
 ```
 # delete local tag '1.0.0'
 git tag -d 1.0.0
-# delete remote tag 'mytag'
+# delete remote tag '1.0.0'
 git push origin :refs/tags/1.0.0
 
 # alternative approach
