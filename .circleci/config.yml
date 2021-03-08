@@ -138,9 +138,6 @@ workflows:
           context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-test
-          filters:
-            branches:
-              only: /pipeline-.*/
       - zip-and-save-stage:
           requires:
             - build-and-test
