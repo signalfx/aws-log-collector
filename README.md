@@ -39,7 +39,7 @@ You can use the provided CloudFormation template with the downloaded archive.
 You need an IAM role with following Policies:
 * AWS managed policy `AmazonS3ReadOnlyAccess`
 * AWS managed policy `AWSLambdaBasicExecutionRole`
-* Inline policy which makes it possible for the lambda to be triggered by creation of  S3 objects (log entries)
+* Inline policy which makes it possible for the lambda to read logs from S3 buckets.
 ```
 {
     "Statement": [
@@ -83,7 +83,7 @@ If in doubt, see [Granting function access to AWS services](https://docs.aws.ama
 ```
 aws lambda add-permission \
      --function-name aws-log-collector \
-     --action lambda:InvokeFunction
+     --action "lambda:InvokeFunction"
      --statement-id s3-account \
      --principal s3.amazonaws.com --source-arn arn:aws:s3:::* \
      --source-account 123456789012
@@ -96,10 +96,10 @@ aws lambda add-permission \
     --statement-id log-groups \
     --principal logs.region.amazonaws.com \
     --source-arn arn:aws:logs:region:123456789123:log-group:*:* \
-    --source-account 123456789012"
+    --source-account 123456789012
 ```
 
-##### 4) Set environment variables
+##### 5) Set environment variables
 These 3 variables are required:
 * `SPLUNK_API_KEY` set to the Access Token from your Splunk Observability organization
 * `SPLUNK_LOG_URL` set to your Splunk Observability ingest url with an additional suffix `/v1/log`. You can find ingest url in `Profile --> Account Settings --> Endpoints --> Real-time Data Ingest`.

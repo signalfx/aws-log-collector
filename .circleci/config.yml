@@ -1,5 +1,7 @@
 version: 2.1
 
+# CHECK if aws and docekr exec can be together
+
 orbs:
   aws-cli: circleci/aws-cli@1.4.0
 
@@ -27,7 +29,7 @@ jobs:
           command: |
             . venv/bin/activate
             make lint || true
-          name: Run lint. This step may be failing for now.
+          name: Run lint. This step is forced to pass despite returning errors.
 
   zip-and-save-test:
     docker:
@@ -124,11 +126,6 @@ workflows:
       - upload-stage:
           requires:
             - zip-and-save-stage
-          filters:
-            branches:
-              only: main
-            tags:
-              ignore: /^\d+\.\d+\.\d+$/
       - zip-and-save-release:
           requires:
             - build-and-test
@@ -140,8 +137,3 @@ workflows:
       - upload-release:
           requires:
             - zip-and-save-release
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
