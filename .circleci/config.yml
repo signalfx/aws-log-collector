@@ -108,7 +108,12 @@ jobs:
 workflows:
   main:
     jobs:
-      - build-and-test
+      - build-and-test:
+          # filters are required since `zip-and-save-release` has tag filters AND requires `build-and-test`
+          # see doc https://circleci.com/docs/2.0/workflows/#executing-workflows-for-a-git-tag
+          filters:
+            tags:
+              only: /.*/
       - zip-and-save-test:
           requires:
             - build-and-test
@@ -127,8 +132,7 @@ workflows:
           requires:
             - zip-and-save-stage
       - zip-and-save-release:
-          requires:
-            - build-and-test
+          # filters are required since `upload-release` has tag filters AND requires `zip-and-save-release`
           filters:
             branches:
               ignore: /.*/
@@ -137,3 +141,8 @@ workflows:
       - upload-release:
           requires:
             - zip-and-save-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
