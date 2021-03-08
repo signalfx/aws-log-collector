@@ -2,7 +2,7 @@ import unittest
 from unittest import TestCase
 from unittest.mock import Mock
 
-from enrichers.s3 import S3LogsEnricher
+from aws_log_collector.enrichers.s3 import S3LogsEnricher
 
 BUCKET_TAGS = {"a": "1", "b": "2"}
 OBJECT_TAGS = {"aa": "11", "bb": "22"}

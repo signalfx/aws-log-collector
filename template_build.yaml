@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SAM template for building Logs Collector code
+Description: Logs collector lambda
 
 Resources:
   SplunkAwsLogsCollector:
@@ -10,8 +10,7 @@ Resources:
       FunctionName: 'splunk-aws-logs-collector'
       Runtime: python3.7
       Timeout: 60
-      CodeUri: ./src
+      CodeUri: ./aws-log-collector.test.zip
       Handler: function.lambda_handler
       Policies:
         - AWSLambdaBasicExecutionRole
-

@@ -2,24 +2,29 @@ import base64
 import gzip
 import json
 import unittest
+import os
 from unittest import TestCase
 from unittest.mock import patch
 
 import signalfx
 
-from enrichers.test_cloudwatch import lambda_context, read_json_file, CUSTOM_TAGS, FORWARDER_FUNCTION_ARN_PREFIX, \
-    FORWARDER_FUNCTION_NAME, FORWARDER_FUNCTION_VERSION, AWS_REGION, AWS_ACCOUNT_ID
 from function import LogCollector
-from lib.client import BatchClient
-from lib.s3_service import S3Service
-from lib.tags_cache import TagsCache
-from utils import read_text_file, get_read_lines_mock
+from aws_log_collector.lib.client import BatchClient
+from aws_log_collector.lib.s3_service import S3Service
+from aws_log_collector.lib.tags_cache import TagsCache
+from tests.utils import get_read_lines_mock
+from tests.enrichers.test_cloudwatch import lambda_context, read_json_file, CUSTOM_TAGS, FORWARDER_FUNCTION_ARN_PREFIX, \
+    FORWARDER_FUNCTION_NAME, FORWARDER_FUNCTION_VERSION, AWS_REGION, AWS_ACCOUNT_ID
 
 
 @patch.object(signalfx.SignalFx, "ingest")
 @patch.object(S3Service, "read_lines")
 @patch.object(BatchClient, "send")
 @patch.object(TagsCache, "get")
+# TODO should not require connection to AWS
+# @unittest.skipUnless(
+#     os.environ.get('AWS_ACCESS_KEY_ID', False), 'Run only if AWS credentials are configured'
+# )
 class LogCollectingSuite(TestCase):
 
     def setUp(self) -> None:
@@ -28,7 +33,7 @@ class LogCollectingSuite(TestCase):
     def test_cloudwatch(self, tags_cache_get_mock, send_method_mock, _, __):
         # GIVEN
         tags_cache_get_mock.return_value = CUSTOM_TAGS
-        event, cw_event = self._read_aws_log_event_from_file('data/lambda_log.json')
+        event, cw_event = self._read_aws_log_event_from_file('tests/data/lambda_log.json')
 
         # WHEN
         self.log_forwarder.forward_log(cw_event, lambda_context())
@@ -137,14 +142,14 @@ class LogCollectingSuite(TestCase):
         arn_to_tags = scenario["arn_to_tags"]
         tags_cache_get_mock.side_effect = lambda arn, _: arn_to_tags[arn] if arn in arn_to_tags else None
 
-        s3_event = read_json_file(f"data/e2e/{scenario_name}_event.json")
-        s3_service_read_lines_mock.side_effect = get_read_lines_mock(f"data/e2e/{scenario_name}.log")
+        s3_event = read_json_file(f"tests/data/e2e/{scenario_name}_event.json")
+        s3_service_read_lines_mock.side_effect = get_read_lines_mock(f"tests/data/e2e/{scenario_name}.log")
 
         # WHEN
         self.log_forwarder.forward_log(s3_event, lambda_context())
 
         # THEN
-        expected_hec_events = read_json_file(f"data/e2e/{scenario_name}_hec_items.json")
+        expected_hec_events = read_json_file(f"tests/data/e2e/{scenario_name}_hec_items.json")
         actual_hec_events = self._parse_hec_events_to_json(send_method_mock.call_args)
         self.assertEqual(expected_hec_events, actual_hec_events)
 
