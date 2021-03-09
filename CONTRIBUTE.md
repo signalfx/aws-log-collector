@@ -9,7 +9,7 @@
 TEST_STACK_NAME=$(whoami)-$(ts -n)-test-stack    
 sam deploy --profile integrations --region eu-central-1 --stack-name $TEST_STACK_NAME --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --template-file template_build.yaml
 ```
-* Setup environment variables. See required variables [here](https://github.com/signalfx/aws-log-collector/blob/dc09a17fbc9054756643e6a0500ccce1c078a4da/README.md#4-set-environment-variables).
+* Setup environment variables. See required variables [here](./README.md#4-set-environment-variables).
 * Cleanup 
 ```
 aws cloudformation --profile integrations --region eu-central-1 delete-stack --stack-name $TEST_STACK_NAME

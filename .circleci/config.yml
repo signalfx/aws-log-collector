@@ -1,7 +1,5 @@
 version: 2.1
 
-# CHECK if aws and docekr exec can be together
-
 orbs:
   aws-cli: circleci/aws-cli@1.4.0
 
@@ -104,6 +102,22 @@ jobs:
       - run:
           command: make publish-release PUBLIC=true ZIP=aws-log-collector.release.zip
           name: Publish release zip to rnd account.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - aws-log-collector.release.zip
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish release on GitHub"
+          command: |
+            VERSION=${CIRCLE_TAG}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
 
 workflows:
   main:
@@ -124,9 +138,6 @@ workflows:
           context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-test
-          filters:
-            branches:
-              only: /pipeline-.*/
       - zip-and-save-stage:
           requires:
             - build-and-test
@@ -142,7 +153,6 @@ workflows:
       - zip-and-save-release:
           requires:
             - build-and-test
-          # filters are required since `upload-release` has tag filters AND requires `zip-and-save-release`
           filters:
             branches:
               ignore: /.*/
@@ -152,8 +162,6 @@ workflows:
           context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-release
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+      - publish-github-release:
+          requires:
+            - upload-release
