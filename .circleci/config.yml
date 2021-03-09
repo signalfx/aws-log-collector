@@ -162,6 +162,16 @@ workflows:
           context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - publish-github-release:
           requires:
             - upload-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
