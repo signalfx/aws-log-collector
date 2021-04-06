@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+from aws_log_collector.cleaners.regex import RegexMessageCleaner
 from aws_log_collector.converters.cloudwatch import CloudWatchLogsConverter
 from aws_log_collector.converters.s3 import S3LogsConverter
 from aws_log_collector.enrichers.cloudwatch import CloudWatchLogsEnricher
@@ -43,6 +44,12 @@ class LogCollector:
             CloudWatchLogsConverter(CloudWatchLogsEnricher(tags_cache)),
             S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers)
         ]
+        self._cleaners = []
+        sensitive_data_regex = os.getenv("SENSITIVE_DATA_REGEX", default="")
+        if sensitive_data_regex != "":
+            cleaner = RegexMessageCleaner(sensitive_data_regex,
+                                          os.getenv("SENSITIVE_DATA_REPLACEMENT", default="<undefined-replacement>"))
+            self._cleaners.append(cleaner)
 
     def forward_log(self, log_event, context):
         with SfxMetrics(SPLUNK_METRIC_URL, SPLUNK_API_KEY) as sfx_metrics:
@@ -53,7 +60,14 @@ class LogCollector:
 
                 for converter in self._converters:
                     if converter.supports(log_event):
-                        hec_logs = converter.convert_to_hec(log_event, context, sfx_metrics)
+                        hec_items = converter.convert_to_hec(log_event, context, sfx_metrics)
+
+                        # modifying logs based on cleaners provided
+                        for cleaner in self._cleaners:
+                            hec_items = [cleaner.cleanup_hec_item_message(hec_item, context, sfx_metrics) for hec_item in hec_items]
+
+                        # convert hec_items to jsons to produce hec_logs
+                        hec_logs = [json.dumps(hec_item) for hec_item in hec_items]
                         self._send(hec_logs, sfx_metrics)
                         break
                 else:

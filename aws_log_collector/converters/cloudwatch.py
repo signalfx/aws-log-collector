@@ -57,7 +57,7 @@ class CloudWatchLogsConverter(Converter):
                         "time": timestamp_as_string[0:-3] + "." + timestamp_as_string[-3:],
                         }
 
-            yield json.dumps(hec_item)
+            yield hec_item
 
     @staticmethod
     def _send_input_metrics(sfx_metrics, aws_logs_base64, aws_logs_compressed, logs):
