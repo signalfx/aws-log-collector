@@ -1,7 +1,5 @@
 version: 2.1
 
-# CHECK if aws and docekr exec can be together
-
 orbs:
   aws-cli: circleci/aws-cli@1.4.0
 
@@ -104,15 +102,40 @@ jobs:
       - run:
           command: make publish-release PUBLIC=true ZIP=aws-log-collector.release.zip
           name: Publish release zip to rnd account.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - aws-log-collector.release.zip
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish release on GitHub"
+          command: |
+            VERSION=${CIRCLE_TAG}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
 
 workflows:
   main:
     jobs:
-      - build-and-test
+      - build-and-test:
+          # filters are required since `zip-and-save-release` has tag filters AND requires `build-and-test`
+          # see doc https://circleci.com/docs/2.0/workflows/#executing-workflows-for-a-git-tag
+          filters:
+            tags:
+              only: /.*/
       - zip-and-save-test:
           requires:
             - build-and-test
+          filters:
+            branches:
+              only: /pipeline-.*/
       - upload-test:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-test
       - zip-and-save-stage:
@@ -124,6 +147,7 @@ workflows:
             tags:
               ignore: /^\d+\.\d+\.\d+$/
       - upload-stage:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-stage
       - zip-and-save-release:
@@ -135,5 +159,19 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+$/
       - upload-release:
+          context: aws-rnd-lambda-extension-user
           requires:
             - zip-and-save-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - publish-github-release:
+          requires:
+            - upload-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
