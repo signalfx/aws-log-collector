@@ -10,7 +10,7 @@ class RegexMessageCleaner(MessageCleaner):
         self.replacement_str = replacement_str
         return
 
-    def _cleanup_hec_item_message(self, hec_item, context, sfx_metrics):
+    def cleanup_hec_item_message(self, hec_item, context, sfx_metrics):
         log_message_ = hec_item["event"]
         self._send_result_metrics(sfx_metrics, len(re.findall(self.pattern, log_message_)))
         hec_item["event"] = re.sub(self.pattern, self.replacement_str, log_message_)
@@ -19,5 +19,5 @@ class RegexMessageCleaner(MessageCleaner):
     @staticmethod
     def _send_result_metrics(sfx_metrics, removed_matches_count):
         sfx_metrics.counters(
-            ("sf.org.awsLogCollector.num.removedMatchedRegexCount", removed_matches_count)
+            ("sf.org.awsLogCollector.num.redactedItems", removed_matches_count)
         )
