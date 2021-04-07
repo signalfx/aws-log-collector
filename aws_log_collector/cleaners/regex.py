@@ -11,9 +11,9 @@ class RegexMessageCleaner(MessageCleaner):
         return
 
     def cleanup_hec_item_message(self, hec_item, context, sfx_metrics):
-        log_message_ = hec_item["event"]
-        self._send_result_metrics(sfx_metrics, len(re.findall(self.pattern, log_message_)))
-        hec_item["event"] = re.sub(self.pattern, self.replacement_str, log_message_)
+        log_message = hec_item["event"]
+        self._send_result_metrics(sfx_metrics, len(re.findall(self.pattern, log_message)))
+        hec_item["event"] = re.sub(self.pattern, self.replacement_str, log_message)
         return hec_item
 
     @staticmethod
