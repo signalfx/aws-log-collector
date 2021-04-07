@@ -48,7 +48,7 @@ class LogCollector:
         sensitive_data_regex = os.getenv("SENSITIVE_DATA_REGEX", default="")
         if sensitive_data_regex != "":
             cleaner = RegexMessageCleaner(sensitive_data_regex,
-                                          os.getenv("SENSITIVE_DATA_REPLACEMENT", default="<undefined-replacement>"))
+                                          os.getenv("SENSITIVE_DATA_REPLACEMENT", default="<sensitive-data>"))
             self._cleaners.append(cleaner)
 
     def forward_log(self, log_event, context):
