@@ -3,8 +3,8 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from aws_log_collector.enrichers.cloudwatch import CloudWatchLogsEnricher
-from tests.utils import lambda_context, read_json_file, FORWARDER_FUNCTION_ARN_PREFIX, FORWARDER_FUNCTION_NAME, AWS_REGION, AWS_ACCOUNT_ID, \
-    FORWARDER_FUNCTION_VERSION
+from tests.utils import lambda_context, read_json_file, AWS_REGION, AWS_ACCOUNT_ID, \
+    FORWARDER_FUNCTION_ARN_PREFIX, FORWARDER_FUNCTION_NAME, FORWARDER_FUNCTION_VERSION
 
 CUSTOM_TAGS = {'someTag1': 'someTagValue1', 'someTag2': 'someTagValue2'}
 

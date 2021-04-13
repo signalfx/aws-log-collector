@@ -6,7 +6,7 @@ from aws_log_collector.converters.converter import Converter
 from aws_log_collector.enrichers.s3 import S3LogsEnricher
 from aws_log_collector.lib.s3_service import S3Service
 from aws_log_collector.logger import log
-from aws_log_collector.parsers.parser import Parser, ParsedLine
+from aws_log_collector.parsers.parser import Parser
 
 
 class S3LogsConverter(Converter):

@@ -1,5 +1,6 @@
 from aws_log_collector.logger import log
 
+
 class BaseEnricher:
 
     def __init__(self, tags_cache):

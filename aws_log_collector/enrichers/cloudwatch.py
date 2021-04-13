@@ -53,7 +53,7 @@ class CloudWatchLogsEnricher(BaseEnricher):
                 deployment_type = "db" if cluster_or_instance == "instance" else cluster_or_instance
                 region, account_id = self._parse_log_collector_function_arn(context)
                 metadata = {'host': host,
-                              'arn': f"arn:aws:rds:{region}:{account_id}:{deployment_type}:{host}"}
+                            'arn': f"arn:aws:rds:{region}:{account_id}:{deployment_type}:{host}"}
                 if name == 'postgresql':
                     # only for postgresql we can detect dbType
                     metadata['dbType'] = name
@@ -97,4 +97,3 @@ class CloudWatchLogsEnricher(BaseEnricher):
             'api-gateway': api_gateway_enricher
         }
         return enrichers.get(source, default_enricher)
-

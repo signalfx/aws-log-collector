@@ -81,7 +81,7 @@ class Parser(ABC):
         return result
 
     @abstractmethod
-    def try_parse(self, metadata, line) -> Optional[ParsedLine]:
+    def try_parse(self, metadata, record) -> Optional[ParsedLine]:
         pass
 
     def _iso_time_to_hec_time(self, timestamp):
