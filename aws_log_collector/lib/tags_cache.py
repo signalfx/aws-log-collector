@@ -1,9 +1,9 @@
 import boto3
 import time
-
 from aws_log_collector.logger import log
 
-SUPPORTED_NAMESPACES = ["lambda", "rds", "eks", "apigateway", "s3"]
+SUPPORTED_NAMESPACES = ["lambda", "rds", "eks", "apigateway", "s3", "elasticloadbalancing",
+                        "redshift", "cloudfront"]
 
 
 class TagsCache(object):
@@ -50,6 +50,7 @@ class TagsCache(object):
         aws_resource_list = resources_page["ResourceTagMappingList"]
         for aws_resource in aws_resource_list:
             arn = aws_resource["ResourceARN"].lower()
+            log.debug(f"loading tags for {arn}")
             aws_tags = aws_resource["Tags"]
             tags = tags_by_arn.get(arn, {})
             for raw_tag in aws_tags:
