@@ -4,15 +4,30 @@ import time
 from aws_log_collector.logger import log
 
 SUPPORTED_NAMESPACES = ["lambda", "rds", "eks", "apigateway", "s3", "elasticloadbalancing",
-                        "redshift"]
+                        "redshift", "cloudfront"]
 
+# tests performed show that tags for the cloudfront namespace may not be available in the region
+# where the log collector is installed, actually the tags were present in us-east-1 region and
+# that's why the SUPPORTED_GLOBAL_NAMESPACES was introduced
+#
+# note that the cloudfront is also added to the SUPPORTED_NAMESPACES... it is because I couldn't
+# find any official confirmation that observations coming from tests are valid
 SUPPORTED_GLOBAL_NAMESPACES = ["cloudfront"]
 
 
 class TagsCache(object):
-    resource_tagging_client = boto3.client("resourcegroupstaggingapi")
-    global_resource_tagging_client = boto3.client("resourcegroupstaggingapi",
-                                                  config=Config(region_name="us-east-1"))
+    session = boto3.session.Session()
+
+    resource_tagging_client = session.client("resourcegroupstaggingapi")
+
+    available = session.get_available_regions("resourcegroupstaggingapi", partition_name="aws")
+    log.debug(f"available services: {available}")
+
+    global_namespaces_available = "us-east-1" in available
+
+    if global_namespaces_available:
+        global_resource_tagging_client = boto3.client("resourcegroupstaggingapi",
+                                                      config=Config(region_name="us-east-1"))
 
     def __init__(self, cache_ttl_seconds):
         self.tags_by_arn = {}
@@ -37,7 +52,9 @@ class TagsCache(object):
         tags_by_arn_cache = {}
 
         TagsCache._load_tags(self.resource_tagging_client, SUPPORTED_NAMESPACES, tags_by_arn_cache)
-        TagsCache._load_tags(self.global_resource_tagging_client, SUPPORTED_GLOBAL_NAMESPACES, tags_by_arn_cache)
+        if self.global_namespaces_available:
+            TagsCache._load_tags(self.global_resource_tagging_client,
+                                 SUPPORTED_GLOBAL_NAMESPACES, tags_by_arn_cache)
 
         return tags_by_arn_cache
 
