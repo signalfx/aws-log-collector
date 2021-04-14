@@ -45,10 +45,10 @@ class LogCollector:
             S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers)
         ]
         self._cleaners = []
-        sensitive_data_regex = os.getenv("SENSITIVE_DATA_REGEX", default="")
-        if sensitive_data_regex != "":
-            cleaner = RegexMessageCleaner(sensitive_data_regex,
-                                          os.getenv("SENSITIVE_DATA_REPLACEMENT", default="<sensitive-data>"))
+        redaction_rule = os.getenv("REDACTION_RULE", default="")
+        if redaction_rule != "":
+            cleaner = RegexMessageCleaner(redaction_rule,
+                                          os.getenv("REDACTION_RULE_REPLACEMENT", default="<sensitive-data>"))
             self._cleaners.append(cleaner)
 
     def forward_log(self, log_event, context):
