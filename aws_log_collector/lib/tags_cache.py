@@ -20,12 +20,12 @@ class TagsCache(object):
 
     resource_tagging_client = session.client("resourcegroupstaggingapi")
 
-    available = session.get_available_regions("resourcegroupstaggingapi", partition_name="aws")
-    log.debug(f"available services: {available}")
+    regions = session.get_available_regions("resourcegroupstaggingapi", partition_name="aws")
+    log.debug(f"available regions: {regions}")
 
-    global_namespaces_available = "us-east-1" in available
+    global_region_available = "us-east-1" in regions
 
-    if global_namespaces_available:
+    if global_region_available:
         global_resource_tagging_client = boto3.client("resourcegroupstaggingapi",
                                                       config=Config(region_name="us-east-1"))
 
@@ -52,7 +52,7 @@ class TagsCache(object):
         tags_by_arn_cache = {}
 
         TagsCache._load_tags(self.resource_tagging_client, SUPPORTED_NAMESPACES, tags_by_arn_cache)
-        if self.global_namespaces_available:
+        if self.global_region_available:
             TagsCache._load_tags(self.global_resource_tagging_client,
                                  SUPPORTED_GLOBAL_NAMESPACES, tags_by_arn_cache)
 
