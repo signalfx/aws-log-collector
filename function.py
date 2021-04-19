@@ -47,8 +47,8 @@ class LogCollector:
         self._cleaners = []
         redaction_rule = os.getenv("REDACTION_RULE", default="")
         if redaction_rule != "":
-            cleaner = RegexMessageCleaner(redaction_rule,
-                                          os.getenv("REDACTION_RULE_REPLACEMENT", default="<sensitive-data>"))
+            replacement_string = os.getenv("REDACTION_RULE_REPLACEMENT", default="**REDACTED**")
+            cleaner = RegexMessageCleaner(redaction_rule, replacement_string)
             self._cleaners.append(cleaner)
 
     def forward_log(self, log_event, context):
