@@ -75,7 +75,7 @@ class S3LogsConverter(Converter):
             "sourcetype": "aws:" + namespace,
             "time": parsed_line.hec_time
         }
-        return json.dumps(hec_item)
+        return hec_item
 
     @staticmethod
     def _send_input_metrics(sfx_metrics, namespace, bytes_received):

@@ -27,6 +27,8 @@ from tests.enrichers.test_cloudwatch import lambda_context, read_json_file, CUST
 class LogCollectingSuite(TestCase):
 
     def setUp(self) -> None:
+        os.environ['REDACTION_RULE'] = '408713b5-d893-464b-9207-[0-9a-f]{12}'
+        os.environ['REDACTION_RULE_REPLACEMENT'] = '<replaced_sensitive>'
         self.log_forwarder = LogCollector()
 
     def test_cloudwatch(self, tags_cache_get_mock, send_method_mock, _, __):
@@ -38,7 +40,8 @@ class LogCollectingSuite(TestCase):
         self.log_forwarder.forward_log(cw_event, lambda_context())
 
         # THEN
-        log_message = event['logEvents'][0]['message']
+        log_message = event['logEvents'][0]['message']\
+            .replace("408713b5-d893-464b-9207-a1f8d9b60e6d", os.environ['REDACTION_RULE_REPLACEMENT'])
         log_group = event['logGroup']
         log_stream = event['logStream']
         function_name = log_group.split('/')[-1]
