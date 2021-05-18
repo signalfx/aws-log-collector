@@ -1,3 +1,14 @@
+# Prerequisites
+
+If you want to work with the `aws-log-collector` lambda locally (e.g. run unit tests, extend the code, etc.) run the following command first to install all required dependencies:
+
+```
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+Alternatively you may run `make init` if you use the make tool.
+
 # Testing
 ### Unit Testing
 `make tests`
