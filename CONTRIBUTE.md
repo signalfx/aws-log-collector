@@ -62,7 +62,17 @@ docker run -p 9000:8080  aws-log-collector:latest --env SPLUNK_API_KEY=${REPLACE
 curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d "@tests/data/e2e/nlb_event.json"
 ```
 
-# Releasing
+# Releasing 
+
+### Manual Process
+
+After you have successfully tested your changes, run the following commands to make the release.
+
+1. `make release-zip`
+2. `make publish-release AWS_PROFILE=rnd CI=true PUBLIC=true ZIP=aws-log-collector.release.zip`
+3. Finally, go to the https://github.com/signalfx/aws-log-collector/releases and make a new release based on the commit you have just tested.
+
+### CircleCI (deprecated)
 We use CircleCi for build process.
 * Every commit to each branch will trigger unit testing. If you want your commits to automatically publish test version to rnd account in AWS, use a branch name starting with "pipeline". If you push a commit to a branch prefixed with "pipeline", the test artifact will be uploaded to AWS.
 
