@@ -114,10 +114,11 @@ jobs:
       - attach_workspace:
           at: ./artifacts
       - run:
-          name: "Publish release on GitHub"
-          command: |
-            VERSION=${CIRCLE_TAG}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+          name: "Make sure to publish release on GitHub manually!"
+          command: echo Make sure to publish release on GitHub manually!
+#          command: |
+#            VERSION=${CIRCLE_TAG}
+#            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
 
 workflows:
   main:
