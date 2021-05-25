@@ -102,7 +102,7 @@ sam deploy --profile <your-aws-profile> --region <your-aws-region> --stack-name 
 * Setup environment variables. See required variables [here](./README.md#4-set-environment-variables).
 * Cleanup 
 ```
-aws cloudformation --profile integrations --region eu-central-1 delete-stack --stack-name $TEST_STACK_NAME
+aws cloudformation --profile <your-aws-profile> --region <your-aws-region> delete-stack --stack-name $TEST_STACK_NAME
 ```
 
 ### E2E Testing: running locally using Docker
