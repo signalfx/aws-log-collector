@@ -1,0 +1,88 @@
+default:
+  image: cimg/python:3.9
+
+install_dependencies:
+  stage: init
+  script: |
+    python3 -m venv venv
+    . venv/bin/activate
+    make init
+
+run_unit_tests: # test_e2e.py is included
+  stage: test
+  script: |
+    . venv/bin/activate
+    make test AWS_DEFAULT_REGION=eu-central-1
+
+run_lint:
+  stage: test
+  allow_failure: true # pass even if the linter returns an error, which is currently the case
+  script: |
+    . venv/bin/activate
+    make lint
+
+zip-and-save-test:
+  stage: zip-artifacts
+  script: make local-zip
+  artifacts:
+    paths:
+      - aws-log-collector.test.zip
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+
+zip-and-save-stage:
+  stage: zip-artifacts
+  script: make stage-zip
+  artifacts:
+    paths:
+      - aws-log-collector.stage.zip
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+zip-and-save-release:
+  stage: zip-artifacts
+  script: make release-zip
+  artifacts:
+    paths:
+      - aws-log-collector.release.zip
+  only:
+    - /^[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - branches
+
+upload-test:
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  script: make publish-release ZIP=aws-log-collector.test.zip
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+
+upload-stage:
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  script: make publish-release ZIP=aws-log-collector.stage.zip
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+upload-release:
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  # REGIONS can be passed in ENV variable to run the job only in selected regions
+  # PUBLIC means public-read acl will be added to artifacts
+  script: make publish-release PUBLIC=true ZIP=aws-log-collector.release.zip
+  only:
+    - /^[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - branches
+
+publish-github-release:
+  stage: publish-artifacts
+  script: echo Make sure to publish release on GitHub manually!
+  # VERSION=${CIRCLE_TAG}
+  # ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+
+stages:
+  - init
+  - test
+  - zip-artifacts
+  - publish-artifacts
