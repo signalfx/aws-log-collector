@@ -7,6 +7,9 @@ install_dependencies:
     python3 -m venv venv
     . venv/bin/activate
     make init
+  artifacts:
+    paths:
+      - venv
 
 run_unit_tests: # test_e2e.py is included
   stage: test
