@@ -64,13 +64,13 @@ upload-test:
   extends: .all_but_main_branch
   stage: publish-artifacts
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  script: ./publish-to-aws.sh ZIP=aws-log-collector.test.zip
+  script: export ZIP=aws-log-collector.test.zip && ./publish-to-aws.sh
 
 upload-stage:
   extends: .main_branch_only
   stage: publish-artifacts
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  script: ./publish-to-aws.sh ZIP=aws-log-collector.stage.zip
+  script: export ZIP=aws-log-collector.stage.zip && ./publish-to-aws.sh
 
 upload-release:
   extends: .version_tagged_only
@@ -78,7 +78,7 @@ upload-release:
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   # REGIONS can be passed in ENV variable to run the job only in selected regions
   # PUBLIC means public-read acl will be added to artifacts
-  script: ./publish-to-aws.sh PUBLIC=true ZIP=aws-log-collector.release.zip
+  script: export PUBLIC=true ZIP=aws-log-collector.release.zip && ./publish-to-aws.sh
 
 stages:
   - init
