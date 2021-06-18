@@ -24,65 +24,61 @@ run_lint:
     . venv/bin/activate
     make lint
 
-zip-and-save-test:
+.all_but_main_branch:
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+
+.main_branch_only:
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+
+.version_tagged_only:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+\.[0-9]+.*/'
+
+zip-test:
+  extends: .all_but_main_branch
   stage: zip-artifacts
   script: make local-zip
   artifacts:
     paths:
       - aws-log-collector.test.zip
-  rules:
-    - if: '$CI_COMMIT_BRANCH != "main"'
 
-zip-and-save-stage:
+zip-stage:
+  extends: .main_branch_only
   stage: zip-artifacts
   script: make stage-zip
   artifacts:
     paths:
       - aws-log-collector.stage.zip
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
 
-zip-and-save-release:
+zip-release:
+  extends: .version_tagged_only
   stage: zip-artifacts
   script: make release-zip
   artifacts:
     paths:
       - aws-log-collector.release.zip
-  only:
-    - /^[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - branches
 
 upload-test:
+  extends: .all_but_main_branch
   stage: publish-artifacts
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  script: publish-to-aws.sh ZIP=aws-log-collector.test.zip
-  rules:
-    - if: '$CI_COMMIT_BRANCH != "main"'
+  script: ./publish-to-aws.sh ZIP=aws-log-collector.test.zip
 
 upload-stage:
+  extends: .main_branch_only
   stage: publish-artifacts
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  script: publish-to-aws.sh ZIP=aws-log-collector.stage.zip
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+  script: ./publish-to-aws.sh ZIP=aws-log-collector.stage.zip
 
 upload-release:
+  extends: .version_tagged_only
   stage: publish-artifacts
   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   # REGIONS can be passed in ENV variable to run the job only in selected regions
   # PUBLIC means public-read acl will be added to artifacts
-  script: publish-to-aws.sh PUBLIC=true ZIP=aws-log-collector.release.zip
-  only:
-    - /^[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - branches
-
-publish-github-release:
-  stage: publish-artifacts
-  script: echo Make sure to publish release on GitHub manually!
-  # VERSION=${CIRCLE_TAG}
-  # ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+  script: ./publish-to-aws.sh PUBLIC=true ZIP=aws-log-collector.release.zip
 
 stages:
   - init
