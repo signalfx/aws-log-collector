@@ -11,13 +11,13 @@ install_dependencies:
     paths:
       - venv
 
-run_unit_tests: # test_e2e.py is included
+unit_tests: # test_e2e.py is included
   stage: test
   script: |
     . venv/bin/activate
     make test AWS_DEFAULT_REGION=eu-central-1
 
-run_lint:
+lint:
   stage: test
   allow_failure: true # pass even if the linter returns an error, which is currently the case
   script: |
@@ -30,7 +30,7 @@ run_lint:
 
 .main_branch_only:
   rules:
-    - if: '$CI_COMMIT_BRANCH != "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 .version_tagged_only:
   rules:
