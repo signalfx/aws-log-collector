@@ -1,0 +1,87 @@
+default:
+  image: cimg/python:3.8
+
+install_dependencies:
+  stage: init
+  script: |
+    python3 -m venv venv
+    . venv/bin/activate
+    make init
+  artifacts:
+    paths:
+      - venv
+
+unit_tests: # test_e2e.py is included
+  stage: test
+  script: |
+    . venv/bin/activate
+    make test AWS_DEFAULT_REGION=eu-central-1
+
+lint:
+  stage: test
+  allow_failure: true # pass even if the linter returns an error, which is currently the case
+  script: |
+    . venv/bin/activate
+    make lint
+
+.all_but_main_branch:
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "main"'
+
+.main_branch_only:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+.version_tagged_only:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+\.[0-9]+.*/'
+
+zip-test:
+  extends: .all_but_main_branch
+  stage: zip-artifacts
+  script: make local-zip
+  artifacts:
+    paths:
+      - aws-log-collector.test.zip
+
+zip-stage:
+  extends: .main_branch_only
+  stage: zip-artifacts
+  script: make stage-zip
+  artifacts:
+    paths:
+      - aws-log-collector.stage.zip
+
+zip-release:
+  extends: .version_tagged_only
+  stage: zip-artifacts
+  script: make release-zip
+  artifacts:
+    paths:
+      - aws-log-collector.release.zip
+
+upload-test:
+  extends: .all_but_main_branch
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  script: export ZIP=aws-log-collector.test.zip && ./publish-to-aws.sh
+
+upload-stage:
+  extends: .main_branch_only
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  script: export ZIP=aws-log-collector.stage.zip && ./publish-to-aws.sh
+
+upload-release:
+  extends: .version_tagged_only
+  stage: publish-artifacts
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  # REGIONS can be passed in ENV variable to run the job only in selected regions
+  # PUBLIC means public-read acl will be added to artifacts
+  script: export PUBLIC=true ZIP=aws-log-collector.release.zip && ./publish-to-aws.sh
+
+stages:
+  - init
+  - test
+  - zip-artifacts
+  - publish-artifacts

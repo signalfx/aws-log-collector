@@ -15,7 +15,7 @@
 # limitations under the License.
 
 if [[ -z "$CI" ]]; then # to protect from running the process from localhost by accident
-    echo "This script is intended to be run from CI only!" # CI variable is exposed by CircleCI by default.
+    echo "This script is intended to be run from CI only!" # CI variable is exposed by GitLab by default.
     echo "If you insist, modify the script and proceed with care." 1>&2
     exit 1
 fi
