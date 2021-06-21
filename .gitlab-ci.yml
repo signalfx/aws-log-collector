@@ -1,5 +1,5 @@
 default:
-  image: cimg/python:3.9
+  image: cimg/python:3.8
 
 install_dependencies:
   stage: init
