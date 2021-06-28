@@ -1,6 +1,17 @@
 default:
   image: cimg/python:3.8
 
+temp_vars_echo:
+  stage: init
+  script: >
+    echo -X POST -H "Accept: application/vnd.github.v3+json"
+    "https://api.github.com/repos/signalfx/aws-log-collector/statuses/${CI_COMMIT_SHA}"
+    -d "{\"state\": \"success\", \"description\": \"CI/CD pipeline passed\", \"target_url\": \"$CI_PIPELINE_URL\"}"
+
+    echo $CI_COMMIT_SHA
+
+    echo $CI_PIPELINE_URL
+
 install_dependencies:
   stage: init
   script: |
