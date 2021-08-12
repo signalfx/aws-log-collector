@@ -170,6 +170,12 @@ class LogCollectingSuite(TestCase):
         actual_hec_events = self._parse_hec_events_to_json(send_method_mock.call_args)
         self.assertEqual(expected_hec_events, actual_hec_events)
 
+    def test_unsupported_log_event(self, _, __, ___, ____):
+        unsupported_event = {'foo': 'bar', 'baz': 123}
+
+        # should not throw any exceptions
+        self.log_forwarder.forward_log(unsupported_event, lambda_context())
+
     def _read_aws_log_event_from_file(self, file_name):
         log_event = read_json_file(file_name)
         aws_event = {'awslogs': {'data': self._encode(json.dumps(log_event))}}

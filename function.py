@@ -85,7 +85,7 @@ class LogCollector:
                         self._send(hec_logs, sfx_metrics)
                         break
                 else:
-                    log.warning("Received unsupported log event: " + log_event)
+                    log.warning("Received unsupported log event: " + json.dumps(log_event))
                     sfx_metrics.inc_counter('sf.org.awsLogCollector.num.skipped_log_events')
             except Exception as ex:
                 log.error(f"Exception occurred: {ex}")
