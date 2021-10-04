@@ -67,7 +67,8 @@ class S3LogsConverter(Converter):
         raw_lines_generator = self._s3_service.read_lines(bucket, key)
         for line in parser.complete_lines(raw_lines_generator):
             if bytes_received == 0 and (parser.validate_line(line) is False):
-                log.error(f"First S3 file line is invalid: {line}, skipping file")
+                log.error(f"First S3 file line is invalid: {line};"
+                          f" skipping file with key: {key}; in bucket: {bucket}")
                 break
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
