@@ -47,9 +47,6 @@ class ApplicationELBParser(Parser):
             "awsAccountId": match.group(ACCOUNT_ID_REGEX_GROUP_INDEX)
         }
 
-    def validate_line(self, line) -> bool:
-        return True
-
     def try_parse(self, metadata, record):
         fields = dict(zip(FIELD_NAMES, record))
 
