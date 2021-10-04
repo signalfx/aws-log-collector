@@ -6,15 +6,59 @@ from urllib.parse import unquote_plus
 from aws_log_collector.logger import log
 from aws_log_collector.parsers.parser import Parser, ParsedLine
 
-# S3 object key format: YYYY-mm-DD-HH-MM-SS-UniqueString/
-OBJECT_KEY_REGEX = re.compile(r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-[a-zA-Z0-9_-]+$")
+# S3 object key format: yyyy-MM-dd-hh-mm-ss-UniqueString/
+OBJECT_KEY_REGEX = re.compile(r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-[0-9A-F]{16}$")
 
-FIELD_NAMES = ("bucket_owner", "bucket", "time", "ip", "requester",
-               "request_id", "operation", "key", "request_uri", "http_status",
-               "error_code", "bytes_sent", "object_size", "total_time", "turn_around_time",
-               "referer", "user_agent", "version_id", "host_id",
-               "signature_version", "cipher_suite", "authentication_type", "host_header",
-               "tls_version")
+# https://docs.aws.amazon.com/AmazonS3/latest/userguide/LogFormat.html#log-record-fields
+LOG_FORMAT_VALIDATION_REGEX = re.compile(
+    r"^[0-9a-f]{64} "                                                               # 'Bucket Owner'
+    r"((?!xn--)(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}))[a-z0-9][a-z0-9-.]{1,61}[a-z0-9] " # 'Bucket'
+    r"\[\d{2}/\w+/\d{4}:\d{2}:\d{2}:\d{2} \+\d{4}] "                                # 'Time'
+    r"(((?:[0-9]{1,3}\.){3}[0-9]{1,3})|-) "                                         # 'Remote IP'
+    r"[^\s]+ "                                                                      # 'Requester ARN/Canonical ID'
+    r"[A-Z0-9]{16} "                                                                # 'Request ID'
+    r"(SOAP|REST|WEBSITE|BATCH|S3)\.[^\s]+ "                                        # 'Operation'
+    r"[^\s]+ "                                                                      # 'Key'
+    r"\".*?\" "                                                                     # 'Request-URI'
+    r"(([1-5][0-9]{2})|-) "                                                         # 'HTTP status'
+    r"[^\s]+ "                                                                      # 'Error Code'
+    r"(((\d+)|(-)) ){4}"                                                            # 'Bytes Sent' 'Object Size' 'Total Time' 'Turn-Around Time'
+    r"(\".*?\" ){2}"                                                                # 'Referrer' 'User-Agent'
+    r"([^\s]+ ){2}"                                                                 # 'Version Id' 'Host Id'
+    r"(SigV2|SigV4|-) "                                                             # 'Signature Version'
+    r"[^\s]+ "                                                                      # 'Cipher Suite'
+    r"(AuthHeader|QueryString|-) "                                                  # 'Authentication Type'
+    r"[^\s]+ "                                                                      # 'Host Header'
+    r"(TLS[^\s]+|-)"                                                                # 'TLS version'
+    r".+[^\s]$")                                                                    # any extra fields
+
+FIELD_NAMES = (
+     "bucket_owner",          # 'Bucket Owner'
+     "bucket",                # 'Bucket'
+     "time",                  # 'Time'
+     "ip",                    # 'Remote IP'
+     "requester",             # 'Requester ARN/Canonical ID'
+     "request_id",            # 'Request ID'
+     "operation",             # 'Operation'
+     "key",                   # 'Key'
+     "request_uri",           # 'Request-URI'
+     "http_status",           # 'HTTP status'
+     "error_code",            # 'Error Code'
+     "bytes_sent",            # 'Bytes Sent'
+     "object_size",           # 'Object Size'
+     "total_time",            # 'Total Time'
+     "turn_around_time",      # 'Turn-Around Time'
+     "referer",               # 'Referrer'
+     "user_agent",            # 'User-Agent'
+     "version_id",            # 'Version Id'
+     "host_id",               # 'Host Id'
+     "signature_version",     # 'Signature Version'
+     "cipher_suite",          # 'Cipher Suite'
+     "authentication_type",   # 'Authentication Type'
+     "host_header",           # 'Host Header'
+     "tls_version"            # 'TLS version'
+)
+
 TIME_FIELD_INDEX = 2
 
 
@@ -25,6 +69,9 @@ class S3Parser(Parser):
 
     def supports(self, log_file_name):
         return OBJECT_KEY_REGEX.search(log_file_name) is not None
+
+    def validate_line(self, line) -> bool:
+        return LOG_FORMAT_VALIDATION_REGEX.search(line) is not None
 
     def try_parse(self, _, record):
         self._fix_time_field(record)

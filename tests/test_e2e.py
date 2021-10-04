@@ -82,15 +82,10 @@ class LogCollectingSuite(TestCase):
 
         send_method_mock.assert_called_with([json.dumps(expected_event)])
 
-    def test_s3_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+    def test_s3_invalid_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
-            "name": "s3",
-            "arn_to_tags": {
-                "arn:aws:s3:::integrations-team":
-                    {"bucket-tag-1": 1, "bucket-tag-2": "abc"},
-                "arn:aws:s3:::integrations-team/WhatsApp Image 2020-07-05 at 18.34.43.jpeg":
-                    {"object-tag-1": 10, "object-tag-2": "def"}
-            }
+            "name": "invalid_s3",
+            "arn_to_tags": {}
         }
         self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
 
