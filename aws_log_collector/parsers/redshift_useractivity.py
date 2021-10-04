@@ -37,5 +37,8 @@ class RedshiftUserActivityLogParser(RedshiftBaseParser):
         arns = [("clusterArn", metadata["clusterArn"])]
         return ParsedLine(hec_time, {}, arns, line)
 
+    def validate_line(self, line) -> bool:
+        return True
+
     def try_parse(self, metadata, record):
         pass

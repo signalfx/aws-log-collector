@@ -84,6 +84,10 @@ class Parser(ABC):
     def try_parse(self, metadata, record) -> Optional[ParsedLine]:
         pass
 
+    @abstractmethod
+    def validate_line(self, line) -> bool:
+        pass
+
     def _iso_time_to_hec_time(self, timestamp):
         try:
             dt = dateutil.parser.isoparse(timestamp)

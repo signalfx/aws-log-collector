@@ -34,6 +34,9 @@ class CloudFrontParser(Parser):
             "distributionArn": f"arn:aws:cloudfront::{aws_account_id}:distribution/{distribution_id}"
         }
 
+    def validate_line(self, line) -> bool:
+        return True
+
     def try_parse(self, metadata, record):
         arns = [("distributionArn", metadata["distributionArn"])]
         # CloudFront uses Extended Log File Format that starts with a header consisting

@@ -9,6 +9,9 @@ class RedshiftConnectionLogParser(RedshiftBaseParser):
     def supports(self, log_file_name):
         return self._is_redshift_log(log_file_name, "connectionlog")
 
+    def validate_line(self, line) -> bool:
+        return True
+
     def try_parse(self, metadata, record):
         fields = dict(zip(FIELD_NAMES, record))
 
