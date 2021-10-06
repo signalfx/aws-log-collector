@@ -15,6 +15,7 @@
 from typing import List
 from urllib.parse import unquote_plus
 
+import function
 from aws_log_collector.converters.converter import Converter
 from aws_log_collector.enrichers.s3 import S3LogsEnricher
 from aws_log_collector.lib.s3_service import S3Service
@@ -71,7 +72,7 @@ class S3LogsConverter(Converter):
                 break
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
-            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics)
+            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics, function.INCLUDE_LOG_FIELDS)
             yield self._to_hec(namespace, parsed_line, metadata)
 
         self._send_input_metrics(sfx_metrics, namespace, bytes_received)

@@ -41,7 +41,9 @@ class S3EnrichmentSuite(TestCase):
         ]
 
         # WHEN
-        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
+        logLine = Mock()
+        logLine.arns = arns
+        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
@@ -59,7 +61,9 @@ class S3EnrichmentSuite(TestCase):
         arns = [("bucketArn", f"arn:aws:s3:::{BUCKET}")]
 
         # WHEN
-        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
+        logLine = Mock()
+        logLine.arns = arns
+        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
@@ -78,7 +82,9 @@ class S3EnrichmentSuite(TestCase):
         ]
 
         # WHEN
-        actual = self.log_enricher.get_metadata(arns, COMMON_METADATA, self.sfx_metrics)
+        logLine = Mock()
+        logLine.arns = arns
+        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
