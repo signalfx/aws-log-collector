@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 from typing import List
 from urllib.parse import unquote_plus
 
@@ -72,7 +71,7 @@ class S3LogsConverter(Converter):
                 break
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
-            metadata = self._logs_enricher.get_metadata(parsed_line.arns, common_metadata, sfx_metrics)
+            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics)
             yield self._to_hec(namespace, parsed_line, metadata)
 
         self._send_input_metrics(sfx_metrics, namespace, bytes_received)

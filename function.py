@@ -40,6 +40,7 @@ SPLUNK_API_KEY = os.getenv("SPLUNK_API_KEY", default="<unknown-token>")
 MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", default=2 * 1024 * 1024))
 COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", default=6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60))
+INCLUDE_LOG_FIELDS = bool(os.getenv("INCLUDE_LOG_FIELDS", default=False))
 
 
 class LogCollector:

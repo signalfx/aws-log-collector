@@ -22,6 +22,7 @@ from unittest.mock import patch
 
 import signalfx
 
+import function
 from function import LogCollector
 from aws_log_collector.lib.client import BatchClient
 from aws_log_collector.lib.s3_service import S3Service
@@ -85,6 +86,19 @@ class LogCollectingSuite(TestCase):
     def test_s3_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         scenario = {
             "name": "s3",
+            "arn_to_tags": {
+                "arn:aws:s3:::integrations-team":
+                    {"bucket-tag-1": 1, "bucket-tag-2": "abc"},
+                "arn:aws:s3:::integrations-team/WhatsApp Image 2020-07-05 at 18.34.43.jpeg":
+                    {"object-tag-1": 10, "object-tag-2": "def"}
+            }
+        }
+        self._test_s3_logs_handling(tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, scenario)
+
+    def test_s3_tokenized_log_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
+        function.INCLUDE_LOG_FIELDS = True
+        scenario = {
+            "name": "tokenized_log_s3",
             "arn_to_tags": {
                 "arn:aws:s3:::integrations-team":
                     {"bucket-tag-1": 1, "bucket-tag-2": "abc"},

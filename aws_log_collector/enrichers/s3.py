@@ -14,17 +14,21 @@
 
 import copy
 
+import function
 from aws_log_collector.enrichers.base_enricher import BaseEnricher
 
 
 class S3LogsEnricher(BaseEnricher):
 
-    def get_metadata(self, arns, metadata, sfx_metrics):
+    def get_metadata(self, parsed_line, metadata, sfx_metrics):
         result = copy.deepcopy(metadata)
 
-        for item in arns:
+        for item in parsed_line.arns:
             name, arn = item
             tags = self.get_tags(arn, sfx_metrics)
             result = self.merge(result, {name: arn}, tags)
 
-        return result
+        if function.INCLUDE_LOG_FIELDS:
+            return {**result, **parsed_line.fields}
+        else:
+            return result
