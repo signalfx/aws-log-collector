@@ -72,7 +72,7 @@ class S3LogsConverter(Converter):
                 break
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
-            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics, self._include_log_fields)
+            metadata = self._logs_enricher.get_metadata(parsed_line.arns, common_metadata, sfx_metrics)
             yield self._to_hec(namespace, parsed_line, metadata)
 
         self._send_input_metrics(sfx_metrics, namespace, bytes_received)
@@ -84,8 +84,10 @@ class S3LogsConverter(Converter):
         else:
             return None
 
-    @staticmethod
-    def _to_hec(namespace, parsed_line, metadata):
+    def _to_hec(self, namespace, parsed_line, metadata):
+        if (self._include_log_fields):
+            metadata["event"] = parsed_line.fields
+
         hec_item = {
             "event": parsed_line.log_line,
             "fields": metadata,
