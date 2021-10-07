@@ -23,6 +23,7 @@ OBJECT_TAGS = {"aa": "11", "bb": "22"}
 COMMON_METADATA = {"foo": "bar"}
 BUCKET = "bucket1"
 OBJECT_KEY = "key1"
+LOG_LINE_FIELDS = {"marco": "polo"}
 
 
 class S3EnrichmentSuite(TestCase):
@@ -31,6 +32,12 @@ class S3EnrichmentSuite(TestCase):
         self.tag_cache_mock = Mock()
         self.sfx_metrics = Mock()
         self.log_enricher = S3LogsEnricher(self.tag_cache_mock)
+
+    def logLine(self, arns, fields):
+        log_line = Mock()
+        log_line.arns = arns
+        log_line.fields = fields
+        return log_line
 
     def test_s3_enrichment_with_bucket_and_object_tags(self):
         # GIVEN
@@ -41,9 +48,7 @@ class S3EnrichmentSuite(TestCase):
         ]
 
         # WHEN
-        logLine = Mock()
-        logLine.arns = arns
-        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
+        actual = self.log_enricher.get_metadata(self.logLine(arns, LOG_LINE_FIELDS), COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
@@ -61,9 +66,7 @@ class S3EnrichmentSuite(TestCase):
         arns = [("bucketArn", f"arn:aws:s3:::{BUCKET}")]
 
         # WHEN
-        logLine = Mock()
-        logLine.arns = arns
-        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
+        actual = self.log_enricher.get_metadata(self.logLine(arns, LOG_LINE_FIELDS), COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
@@ -82,15 +85,24 @@ class S3EnrichmentSuite(TestCase):
         ]
 
         # WHEN
-        logLine = Mock()
-        logLine.arns = arns
-        actual = self.log_enricher.get_metadata(logLine, COMMON_METADATA, self.sfx_metrics, False)
+        actual = self.log_enricher.get_metadata(self.logLine(arns, LOG_LINE_FIELDS), COMMON_METADATA, self.sfx_metrics, False)
 
         # THEN
         expected = {
             "bucketArn": f"arn:aws:s3:::{BUCKET}",
             "objectArn": f"arn:aws:s3:::{BUCKET}/{OBJECT_KEY}",
             **COMMON_METADATA
+        }
+        self.assertEqual(expected, actual)
+
+    def test_s3_enrichment_with_log_fields(self):
+        # WHEN
+        actual = self.log_enricher.get_metadata(self.logLine([], LOG_LINE_FIELDS), COMMON_METADATA, self.sfx_metrics, True)
+
+        # THEN
+        expected = {
+            **COMMON_METADATA,
+            'event': LOG_LINE_FIELDS
         }
         self.assertEqual(expected, actual)
 

@@ -15,7 +15,6 @@
 from typing import List
 from urllib.parse import unquote_plus
 
-import function
 from aws_log_collector.converters.converter import Converter
 from aws_log_collector.enrichers.s3 import S3LogsEnricher
 from aws_log_collector.lib.s3_service import S3Service
@@ -25,10 +24,11 @@ from aws_log_collector.parsers.parser import Parser
 
 class S3LogsConverter(Converter):
 
-    def __init__(self, logs_enricher: S3LogsEnricher, s3_service: S3Service, parsers: List[Parser]):
+    def __init__(self, logs_enricher: S3LogsEnricher, s3_service: S3Service, parsers: List[Parser], include_log_fields: bool):
         self._logs_enricher = logs_enricher
         self._s3_service = s3_service
         self._parsers = parsers
+        self._include_log_fields = include_log_fields
 
     def supports(self, log_event):
         try:
@@ -72,7 +72,7 @@ class S3LogsConverter(Converter):
                 break
             bytes_received += len(line)
             parsed_line = parser.parse(common_metadata, line)
-            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics, function.INCLUDE_LOG_FIELDS)
+            metadata = self._logs_enricher.get_metadata(parsed_line, common_metadata, sfx_metrics, self._include_log_fields)
             yield self._to_hec(namespace, parsed_line, metadata)
 
         self._send_input_metrics(sfx_metrics, namespace, bytes_received)

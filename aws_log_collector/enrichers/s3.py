@@ -28,6 +28,6 @@ class S3LogsEnricher(BaseEnricher):
             result = self.merge(result, {name: arn}, tags)
 
         if include_log_fields:
-            return {**result, **parsed_line.fields}
-        else:
-            return result
+            result["event"] = parsed_line.fields
+
+        return result

@@ -43,12 +43,14 @@ from tests.enrichers.test_cloudwatch import lambda_context, read_json_file, CUST
 class LogCollectingSuite(TestCase):
 
     def setUp(self) -> None:
-        os.environ['REDACTION_RULE'] = '408713b5-d893-464b-9207-[0-9a-f]{12}'
-        os.environ['REDACTION_RULE_REPLACEMENT'] = '<replaced_sensitive>'
         self.log_forwarder = LogCollector()
 
     def test_cloudwatch(self, tags_cache_get_mock, send_method_mock, _, __):
         # GIVEN
+        function.REDACTION_RULE = '408713b5-d893-464b-9207-[0-9a-f]{12}'
+        function.REDACTION_RULE_REPLACEMENT = '<replaced_sensitive>'
+        self.log_forwarder = LogCollector()
+
         tags_cache_get_mock.return_value = CUSTOM_TAGS
         event, cw_event = self._read_aws_log_event_from_file('tests/data/lambda_log.json')
 
@@ -57,7 +59,7 @@ class LogCollectingSuite(TestCase):
 
         # THEN
         log_message = event['logEvents'][0]['message']\
-            .replace("408713b5-d893-464b-9207-a1f8d9b60e6d", os.environ['REDACTION_RULE_REPLACEMENT'])
+            .replace('408713b5-d893-464b-9207-a1f8d9b60e6d', '<replaced_sensitive>')
         log_group = event['logGroup']
         log_stream = event['logStream']
         function_name = log_group.split('/')[-1]
@@ -97,6 +99,7 @@ class LogCollectingSuite(TestCase):
 
     def test_s3_tokenized_log_s3(self, tags_cache_get_mock, send_method_mock, s3_service_read_lines_mock, _):
         function.INCLUDE_LOG_FIELDS = True
+        self.log_forwarder = LogCollector()
         scenario = {
             "name": "tokenized_log_s3",
             "arn_to_tags": {
