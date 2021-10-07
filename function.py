@@ -42,7 +42,7 @@ COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", default=6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60))
 REDACTION_RULE = os.getenv("REDACTION_RULE", default="")
 REDACTION_RULE_REPLACEMENT = os.getenv("REDACTION_RULE_REPLACEMENT", default="**REDACTED**")
-INCLUDE_LOG_FIELDS = bool(os.getenv("INCLUDE_LOG_FIELDS", default=False))
+INCLUDE_LOG_FIELDS = os.getenv('INCLUDE_LOG_FIELDS', default='false').lower() == 'true'
 
 
 class LogCollector:
