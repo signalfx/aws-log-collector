@@ -112,3 +112,7 @@ Tag the lambda function you've created with a tag consisting of a key `splunk-lo
 ##### 7) Wait (up to ~15 minutes)
 The tag which you have just added is used by Splunk Observability backend to discover your lambda function. Once it is discovered, the backend will start managing lambda triggers.
 
+### Optional environment variables list
+* `REDACTION_RULE` regEx to match in log message for further replacement
+* `REDACTION_RULE_REPLACEMENT` replacement string for a text occurrence matching `REDACTION_RULE` regEx
+* `INCLUDE_LOG_FIELDS` include fields parsed from S3 log file to the ingested event (default:false)
