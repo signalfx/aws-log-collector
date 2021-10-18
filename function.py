@@ -40,6 +40,9 @@ SPLUNK_API_KEY = os.getenv("SPLUNK_API_KEY", default="<unknown-token>")
 MAX_REQUEST_SIZE_IN_BYTES = int(os.getenv("MAX_REQUEST_SIZE_IN_BYTES", default=2 * 1024 * 1024))
 COMPRESSION_LEVEL = int(os.getenv("COMPRESSION_LEVEL", default=6))
 TAGS_CACHE_TTL_SECONDS = int(os.getenv("TAGS_CACHE_TTL_SECONDS", default=15 * 60))
+REDACTION_RULE = os.getenv("REDACTION_RULE", default="")
+REDACTION_RULE_REPLACEMENT = os.getenv("REDACTION_RULE_REPLACEMENT", default="**REDACTED**")
+INCLUDE_LOG_FIELDS = os.getenv('INCLUDE_LOG_FIELDS', default='false').lower() == 'true'
 
 
 class LogCollector:
@@ -56,14 +59,11 @@ class LogCollector:
         ]
         self._converters = [
             CloudWatchLogsConverter(CloudWatchLogsEnricher(tags_cache)),
-            S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers)
+            S3LogsConverter(S3LogsEnricher(tags_cache), S3Service(), s3_parsers, INCLUDE_LOG_FIELDS)
         ]
         self._cleaners = []
-        redaction_rule = os.getenv("REDACTION_RULE", default="")
-        if redaction_rule != "":
-            replacement_string = os.getenv("REDACTION_RULE_REPLACEMENT", default="**REDACTED**")
-            cleaner = RegexMessageCleaner(redaction_rule, replacement_string)
-            self._cleaners.append(cleaner)
+        if REDACTION_RULE != "":
+            self._cleaners.append(RegexMessageCleaner(REDACTION_RULE, REDACTION_RULE_REPLACEMENT))
 
     def forward_log(self, log_event, context):
         with SfxMetrics(SPLUNK_METRIC_URL, SPLUNK_API_KEY) as sfx_metrics:

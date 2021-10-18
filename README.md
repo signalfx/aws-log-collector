@@ -106,9 +106,12 @@ These 3 variables are required:
  For example, if your ingest url is `https://ingest.us0.signalfx.com` then the variable should be set to `https://ingest.us0.signalfx.com/v1/log`	.
 * `SPLUNK_METRIC_URL` set to Real-time Data Ingest url from your account. That is the same endpoint as above, but without the suffix. In our example, the value would be `https://ingest.us0.signalfx.com`. Splunk uses this to monitor the usage and adoption of aws-collector-lambda.
 
+These variables are optional:
+* `REDACTION_RULE` replace text matching the supplied regular expression with `REDACTION_RULE_REPLACEMENT`.
+* `REDACTION_RULE_REPLACEMENT` replace text matching the `REDACTION_RULE` with the following text.
+* `INCLUDE_LOG_FIELDS` if this is set to `false`, the function will forward only raw log line from the source. If set to `true`, the function will forward both the raw log line and fields it parsed out from the line. The default value of `false` is meant to reduce log volume
 ##### 6) Tag the lambda function
 Tag the lambda function you've created with a tag consisting of a key `splunk-log-collector-id` and value containing region code, for example `splunk-log-collector-id`: `af-south-1`.
 
 ##### 7) Wait (up to ~15 minutes)
 The tag which you have just added is used by Splunk Observability backend to discover your lambda function. Once it is discovered, the backend will start managing lambda triggers.
-

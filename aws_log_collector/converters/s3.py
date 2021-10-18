@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 from typing import List
 from urllib.parse import unquote_plus
 
@@ -25,10 +24,11 @@ from aws_log_collector.parsers.parser import Parser
 
 class S3LogsConverter(Converter):
 
-    def __init__(self, logs_enricher: S3LogsEnricher, s3_service: S3Service, parsers: List[Parser]):
+    def __init__(self, logs_enricher: S3LogsEnricher, s3_service: S3Service, parsers: List[Parser], include_log_fields: bool):
         self._logs_enricher = logs_enricher
         self._s3_service = s3_service
         self._parsers = parsers
+        self._include_log_fields = include_log_fields
 
     def supports(self, log_event):
         try:
@@ -84,8 +84,10 @@ class S3LogsConverter(Converter):
         else:
             return None
 
-    @staticmethod
-    def _to_hec(namespace, parsed_line, metadata):
+    def _to_hec(self, namespace, parsed_line, metadata):
+        if (self._include_log_fields):
+            metadata["event"] = parsed_line.fields
+
         hec_item = {
             "event": parsed_line.log_line,
             "fields": metadata,
