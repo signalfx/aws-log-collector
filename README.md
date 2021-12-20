@@ -1,3 +1,5 @@
+>ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/investor-relations/acquisitions/signalfx.html) for more information.
+
 # aws-log-collector
 This project contains an AWS Lambda function. Aws-log-collector needs to be deployed by users of Splunk Observability Suite in each region where they want to collect AWS logs.
 Splunk provides [a variety of CloudFormation templates](https://github.com/signalfx/aws-cloudformation-templates) which deploy and configure this function. We strongly recommend using these templates if possible in your environment.
