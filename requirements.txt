@@ -1,4 +1,4 @@
 aws-lambda-context==1.1.0
-requests==2.25.1
+requests==2.27.0
 signalfx==1.1.13
 smart_open[s3]==4.0.0
