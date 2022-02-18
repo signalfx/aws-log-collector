@@ -60,11 +60,14 @@ zip-release:
     paths:
       - aws-log-collector.release.zip
 
-upload-test:
-  extends: .all_but_main_branch
-  stage: publish-artifacts
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  script: export ZIP=aws-log-collector.test.zip && ./publish-to-aws.sh
+# Disabled "upload-test" as we do not want the AWS RND credentials to be used outside the main branch.
+# We can enable this back when we move those credentials to a secret manager (e.g. Hashicorp Vault)
+
+# upload-test:
+#  extends: .all_but_main_branch
+#  stage: publish-artifacts
+#  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+#  script: export ZIP=aws-log-collector.test.zip && ./publish-to-aws.sh
 
 upload-stage:
   extends: .main_branch_only
