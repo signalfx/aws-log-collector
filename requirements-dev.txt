@@ -1,2 +1,2 @@
-coverage==5.4
+coverage==6.3.3
 pylint==2.6.0
