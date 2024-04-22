@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM public.ecr.aws/lambda/python:3.7
+FROM public.ecr.aws/lambda/python:3.12
 
 ARG AWS_DEFAULT_REGION
 ARG AWS_ACCESS_KEY_ID
