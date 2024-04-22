@@ -1,5 +1,10 @@
+include:
+  - project: 'ci-cd/templates'
+    ref: master
+    file: '/prodsec/.oss-scan.yml'
+
 default:
-  image: cimg/python:3.8
+  image: cimg/python:3.12
 
 install_dependencies:
   stage: init
@@ -23,6 +28,10 @@ lint:
   script: |
     . venv/bin/activate
     make lint
+
+oss-scan:
+  stage: test
+  extends: .oss-scan
 
 .all_but_main_branch:
   rules:
