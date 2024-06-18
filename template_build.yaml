@@ -8,7 +8,7 @@ Resources:
     Description: Splunk AWS Log Collector
     Properties:
       FunctionName: 'splunk-aws-logs-collector'
-      Runtime: python3.12
+      Runtime: python3.11
       Timeout: 60
       CodeUri: ./aws-log-collector.test.zip
       Handler: function.lambda_handler
